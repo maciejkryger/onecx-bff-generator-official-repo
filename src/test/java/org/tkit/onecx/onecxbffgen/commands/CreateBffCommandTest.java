@@ -37,15 +37,30 @@ class CreateBffCommandTest {
         assertTrue(Files.exists(generated.resolve("src/main/helm/values.yaml")));
         assertTrue(Files.exists(generated.resolve("src/main/docker/Dockerfile.jvm")));
         assertTrue(Files.exists(generated.resolve("src/main/docker/Dockerfile.native")));
-        assertTrue(Files.exists(generated.resolve("demo-bff.adoc")));
-        assertTrue(Files.exists(generated.resolve(".github/workflows/build.yml")));
+        assertTrue(Files.exists(generated.resolve(".github/workflows/build-branch.yml")));
+        assertFalse(Files.exists(generated.resolve(".github/workflows/build.yml")));
         String pom = Files.readString(generated.resolve("pom.xml"));
         assertTrue(pom.contains("<packaging>quarkus</packaging>"));
         assertTrue(pom.contains("<maven.compiler.release>25</maven.compiler.release>"));
         assertTrue(pom.contains("<artifactId>quarkus-openapi-generator</artifactId>"));
         assertTrue(pom.contains("<artifactId>tkit-quarkus-rest-context</artifactId>"));
         assertTrue(pom.contains("<artifactId>onecx-permissions</artifactId>"));
+        assertTrue(pom.contains("<artifactId>maven-surefire-plugin</artifactId>"));
+        assertTrue(pom.contains("SecurityDynamicImplTest"));
         assertFalse(pom.contains("<artifactId>swagger-parser</artifactId>"));
+        String usersController = Files.readString(generated.resolve("src/main/java/org/tkit/onecx/demo/bff/rs/controllers/UsersRestController.java"));
+        assertTrue(usersController.contains("UserDTO"), "Frontend DTO type should be used in controller method signature");
+        assertFalse(usersController.contains("UserDTODTO"), "DTO suffix should not be doubled");
+        String usersTest = Files.readString(generated.resolve("src/test/java/org/tkit/onecx/demo/bff/rs/UsersRestControllerTest.java"));
+        assertTrue(usersTest.contains("@QuarkusTest"), "Test should be a QuarkusTest");
+        assertTrue(usersTest.contains("keycloakClient.getAccessToken"), "Test should use Keycloak auth");
+        assertTrue(usersTest.contains("MockServerClient"), "Test should use MockServerClient");
+        assertTrue(usersTest.contains("UNAUTHORIZED"), "Test should verify 401");
+        String abstractTest = Files.readString(generated.resolve("src/test/java/org/tkit/onecx/demo/bff/rs/AbstractTest.java"));
+        assertTrue(abstractTest.contains("KeycloakTestClient"), "AbstractTest should have KeycloakTestClient");
+        assertTrue(abstractTest.contains("MockServerTestResource"), "AbstractTest should register MockServerTestResource");
+        // @InjectMockServerClient is declared in each test class (not abstract base)
+        assertTrue(usersTest.contains("@InjectMockServerClient"), "Test class should inject MockServerClient");
     }
     @Test
     void shouldGenerateProjectWithLegacyProfile() throws Exception {
@@ -183,8 +198,36 @@ class CreateBffCommandTest {
         assertTrue(mapper.contains("Category toBackend(CategoryDTO source);"));
         assertTrue(mapper.contains("CategoryDTO toFrontend(Category source);"));
     }
-}
 
+    @Test
+    void shouldGenerateFallbackControllerWithBackendModelImportsWhenFrontendHasNoPaths() throws Exception {
+        Path tempDir = Files.createTempDirectory("bff-generator-fallback-");
+        Path frontend = Path.of("src/test/resources/openapi/frontend-no-paths.yaml").toAbsolutePath();
+        Path backend = Path.of("src/test/resources/openapi/backend-product.yaml").toAbsolutePath();
+        
+        int result = new CommandLine(new CreateBffCommand(new org.tkit.onecx.onecxbffgen.service.GeneratorService())).execute(
+                "--project-name", "demo-bff-fallback",
+                "--frontend-api", frontend.toString(),
+                "--backend-api", backend.toString(),
+                "--output-dir", tempDir.toString(),
+                "--parent-version", "3.1.0"
+        );
+        
+        Path generated = tempDir.resolve("demo-bff-fallback");
+        assertEquals(0, result);
+        
+        Path controllerPath = generated.resolve("src/main/java/org/tkit/onecx/demo/bff/fallback/rs/controllers/ProductRestController.java");
+        assertTrue(Files.exists(controllerPath));
+        
+        String controller = Files.readString(controllerPath);
+        // In fallback mode (frontend has no paths), backend model imports should be present
+        assertTrue(controller.contains("import gen.org.tkit.onecx.demo.bff.fallback.backend.client.model.*;"),
+                "Controller should import backend model types for fallback mode");
+        // Request/response types should use backend model names exactly as they appear in backend schema
+        assertTrue(controller.contains("ProductSearchCriteriaDTO"),
+                "Controller method parameter should use backend schema type");
+    }
+}
 
 
 

@@ -75,8 +75,81 @@ public class OpenApiAnalyzer {
         }
         String tag = resolveControllerTag(operation.getTags(), path);
         String normalizedMethod = method.toUpperCase(Locale.ROOT);
+        String requestBodyType = extractRequestBodyType(operation);
+        String responseType = extractResponseType(operation);
+        int successStatusCode = extractSuccessStatusCode(operation);
         controllers.computeIfAbsent(tag, ignored -> new ArrayList<>())
-                .add(new OperationModel(operationId, normalizedMethod, path));
+                .add(new OperationModel(operationId, normalizedMethod, path, requestBodyType, responseType, successStatusCode));
+    }
+
+    private String extractRequestBodyType(Operation operation) {
+        if (operation.getRequestBody() == null) {
+            return null;
+        }
+        var content = operation.getRequestBody().getContent();
+        if (content == null) {
+            return null;
+        }
+        var mediaType = content.get("application/json");
+        if (mediaType == null) {
+            mediaType = content.values().stream().findFirst().orElse(null);
+        }
+        if (mediaType == null || mediaType.getSchema() == null) {
+            return null;
+        }
+        return schemaToSimpleType(mediaType.getSchema());
+    }
+
+    private String extractResponseType(Operation operation) {
+        if (operation.getResponses() == null) {
+            return null;
+        }
+        var successResponse = operation.getResponses().get("200");
+        if (successResponse == null) {
+            successResponse = operation.getResponses().get("201");
+        }
+        if (successResponse == null) {
+            return null;
+        }
+        var content = successResponse.getContent();
+        if (content == null) {
+            return null;
+        }
+        var mediaType = content.get("application/json");
+        if (mediaType == null) {
+            mediaType = content.values().stream().findFirst().orElse(null);
+        }
+        if (mediaType == null || mediaType.getSchema() == null) {
+            return null;
+        }
+        return schemaToSimpleType(mediaType.getSchema());
+    }
+
+    private int extractSuccessStatusCode(Operation operation) {
+        if (operation.getResponses() == null) {
+            return 0;
+        }
+        for (String code : List.of("200", "201", "202", "204")) {
+            if (operation.getResponses().containsKey(code)) {
+                return Integer.parseInt(code);
+            }
+        }
+        return 0;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private String schemaToSimpleType(Schema<?> schema) {
+        if (schema.get$ref() != null) {
+            return schema.get$ref().substring(schema.get$ref().lastIndexOf('/') + 1);
+        }
+        if ("array".equals(schema.getType())) {
+            Schema items = schema.getItems();
+            if (items != null && items.get$ref() != null) {
+                return "List<" + items.get$ref().substring(items.get$ref().lastIndexOf('/') + 1) + ">";
+            }
+            return "List<Object>";
+        }
+        return null;
     }
 
     private String resolveControllerTag(List<String> tags, String path) {

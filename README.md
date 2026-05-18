@@ -91,7 +91,7 @@ Jeżeli nie podasz `--parent-version`, generator próbuje pobrać latest release
 ## Jak uruchomić generator
 
 ```bash
-cd /home/Maciej/projects/onecx/onecx-bff-generator
+cd /home/Maciej/projects/onecx/onecx-bff-generator 
 mvn -q -DskipTests exec:java -Dexec.args="--help"
 ```
 
@@ -105,7 +105,7 @@ mvn -q -DskipTests exec:java -Dexec.args="create-bff --help"
 
 ```bash
 cd /home/Maciej/projects/onecx/onecx-bff-generator
-mvn -q -DskipTests clean package
+mvn -q -DskipTests clean package -Dquarkus.package.type=uber-jar
 ```
 
 ## Uruchomienie z jara
@@ -168,4 +168,9 @@ Mapery używają modeli generowanych z OpenAPI:
 ```bash
 cd /home/Maciej/projects/onecx/onecx-bff-generator
 mvn -q test
+```
+
+budowanie JARa z testami:
+```bash
+mvn clean package -Dquarkus.package.type=uber-jar
 ```

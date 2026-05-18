@@ -1,6 +1,8 @@
 package ${packageName};
 
 ${apiServiceImportStatement}
+${frontendModelImportStatement}
+${backendModelImportStatement}
 import ${backendClientImport};
 import ${exceptionMapperImport};
 import ${mapperImport};
@@ -48,6 +50,8 @@ ${methods}
         return exceptionMapper.clientException(ex);
     }
 }
+
+
 
 
 

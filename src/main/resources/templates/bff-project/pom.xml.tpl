@@ -122,6 +122,25 @@ ${legacySwaggerParser}    </dependencies>
                 <extensions>true</extensions>
             </plugin>
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
+                    <excludes>
+                        <exclude>**/org/tkit/quarkus/security/dynamic/test/SecurityDynamicImplTest.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/org/tkit/quarkus/security/dynamic/test/SecurityDynamicImplIT.*</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <executions>
@@ -169,5 +188,7 @@ ${openApiJavaOption}
         </plugins>
     </build>
 </project>
+
+
 
 

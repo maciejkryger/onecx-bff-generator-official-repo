@@ -61,7 +61,8 @@ public class GeneratorService {
                 controllerSelection.implementFrontendApi(),
                 controllerSelection.todoStubMode());
         projectWriter.writeMapperClasses(projectDir, basePackage, frontendSchemas, backendSchemas);
-        projectWriter.writeTestScaffold(projectDir, basePackage, controllerSelection.controllers());
+        projectWriter.writeTestScaffold(projectDir, basePackage, controllerSelection.controllers(),
+                controllerSelection.backendClientByController());
         projectWriter.writeWorkflowFiles(projectDir, profile);
         writeGenerationReport(projectDir, request.projectName(), request.groupId(), basePackage, parentVersion, profile,
                 frontendSchemas, backendSchemas, controllerSelection.controllers());
@@ -201,7 +202,7 @@ public class GeneratorService {
 
         Map<String, List<OperationModel>> controllers = Map.of(primaryEntity, selected);
         Map<String, String> backendClientByController = Map.of(primaryEntity, backendClientBase);
-        return new ControllerSelection(controllers, backendClientByController, false, true);
+        return new ControllerSelection(controllers, backendClientByController, false, false);
     }
 
     private String resolvePrimaryEntity(List<SchemaModel> schemas) {
@@ -260,6 +261,8 @@ public class GeneratorService {
         Files.writeString(projectDir.resolve("generation-report.json"), report);
     }
 }
+
+
 
 
 
