@@ -20,7 +20,7 @@ app:
             defaultClientScopes: [ ${defaultScopes} ]
     microservice:
       spec:
-        description: ${projectName}
+        description: ${projectDisplayName}
         name: ${projectName}
 
 
