@@ -10,7 +10,6 @@ import org.mockserver.model.HttpResponse;
 import static io.restassured.RestAssured.given;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @QuarkusTest
-@LogService
 class ${className}Test extends AbstractTest {
     @InjectMockServerClient
     MockServerClient mockServerClient;

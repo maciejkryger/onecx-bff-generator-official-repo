@@ -17,16 +17,4 @@ public record OperationModel(String operationId, String httpMethod, String path,
     public boolean hasResponseBody() {
         return responseType != null && !responseType.isBlank();
     }
-    public String resolvedBackendOperationId() {
-        return backendOperationId != null && !backendOperationId.isBlank() ? backendOperationId : operationId;
-    }
-    public String resolvedBackendRequestBodyType() {
-        return backendRequestBodyType != null && !backendRequestBodyType.isBlank() ? backendRequestBodyType : requestBodyType;
-    }
-    public String resolvedBackendResponseType() {
-        return backendResponseType != null && !backendResponseType.isBlank() ? backendResponseType : responseType;
-    }
-    public String resolvedBackendPath() {
-        return backendPath != null && !backendPath.isBlank() ? backendPath : path;
-    }
 }

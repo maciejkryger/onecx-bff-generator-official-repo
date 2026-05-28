@@ -12,6 +12,7 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -47,7 +48,6 @@ ${methods}
         return exceptionMapper.clientException(ex);
     }
 }
-
 
 
 
