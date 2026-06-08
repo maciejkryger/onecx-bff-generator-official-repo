@@ -207,7 +207,7 @@ class CreateBffCommandTest {
         String mapper = Files.readString(mapperPath);
         assertFalse(mapper.contains("import org.tkit.onecx.demo.bff.domain.model.frontend.Category;\nimport org.tkit.onecx.demo.bff.domain.model.backend.Category;"));
         assertTrue(mapper.contains("import gen.org.tkit.onecx.demo.bff.rs.internal.model.CategoryDTO;"));
-        assertTrue(mapper.contains("import gen.org.tkit.onecx.demo.bff.backend.client.model.Category;"));
+        assertTrue(mapper.contains("import gen.org.tkit.onecx.demo.bff.client.model.Category;"));
         assertTrue(mapper.contains("Category toBackend(CategoryDTO source);"));
         assertTrue(mapper.contains("CategoryDTO toFrontend(Category source);"));
     }
@@ -234,7 +234,7 @@ class CreateBffCommandTest {
         
         String controller = Files.readString(controllerPath);
         // In fallback mode (frontend has no paths), backend model imports should be present
-        assertTrue(controller.contains("import gen.org.tkit.onecx.demo.bff.fallback.backend.client.model.*;"),
+        assertTrue(controller.contains("import gen.org.tkit.onecx.demo.bff.fallback.client.model.*;"),
                 "Controller should import backend model types for fallback mode");
         // Request/response types should use backend model names exactly as they appear in backend schema
         assertTrue(controller.contains("ProductSearchCriteriaDTO"),

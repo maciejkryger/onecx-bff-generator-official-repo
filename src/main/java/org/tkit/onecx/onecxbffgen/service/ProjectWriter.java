@@ -204,7 +204,9 @@ public class ProjectWriter {
             normalizedToMapper.put(normalized, mapperBaseName(sanitizeTypeName(source.name())) + "Mapper");
         }
         writeTemplate(baseDir.resolve("ExceptionMapper.java"), "entity/ExceptionMapper.java.tpl",
-                Map.of("packageName", pkg + ".rs.mappers"));
+                Map.of("packageName", pkg + ".rs.mappers",
+                        "internalModelPackage", "gen." + pkg + ".rs.internal.model",
+                        "backendClientBasePackage", "gen." + pkg + ".client"));
 
         // Group all frontend DTOs by their base entity name → one mapper file per entity
         // e.g. Product, SearchProductRequest, CreateProductRequest, UpdateProductRequest → ProductMapper

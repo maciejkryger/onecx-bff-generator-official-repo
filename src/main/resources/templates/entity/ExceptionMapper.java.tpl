@@ -17,10 +17,10 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.tkit.quarkus.rs.mappers.OffsetDateTimeMapper;
 
-import gen.org.tkit.onecx.demo.bff.rs.internal.model.ProblemDetailInvalidParamDTO;
-import gen.org.tkit.onecx.demo.bff.rs.internal.model.ProblemDetailParamDTO;
-import gen.org.tkit.onecx.demo.bff.rs.internal.model.ProblemDetailResponseDTO;
-import gen.org.tkit.onecx.demo.client.model.ProblemDetailResponse;
+import ${internalModelPackage}.ProblemDetailInvalidParamDTO;
+import ${internalModelPackage}.ProblemDetailParamDTO;
+import ${internalModelPackage}.ProblemDetailResponseDTO;
+import ${backendClientBasePackage}.model.ProblemDetailResponse;
 
 @Mapper(uses = { OffsetDateTimeMapper.class })
 public interface ExceptionMapper {

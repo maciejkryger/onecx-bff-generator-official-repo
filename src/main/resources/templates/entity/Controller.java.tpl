@@ -39,7 +39,7 @@ public class ${className}${apiServiceTypeSuffix} {
 
 ${methods}
     @ServerExceptionMapper
-    public RestResponse<String> constraint(ConstraintViolationException ex) {
+    public RestResponse<ProblemDetailResponseDTO> constraint(ConstraintViolationException ex) {
         return exceptionMapper.constraint(ex);
     }
 
