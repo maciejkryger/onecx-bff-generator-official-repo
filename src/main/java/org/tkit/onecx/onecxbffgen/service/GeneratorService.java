@@ -1,5 +1,6 @@
 package org.tkit.onecx.onecxbffgen.service;
 import io.swagger.v3.oas.models.OpenAPI;
+import jakarta.enterprise.context.ApplicationScoped;
 import org.tkit.onecx.onecxbffgen.model.DependencyProfile;
 import org.tkit.onecx.onecxbffgen.model.GenerateRequest;
 import org.tkit.onecx.onecxbffgen.model.OperationModel;
@@ -12,14 +13,19 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+@ApplicationScoped
 public class GeneratorService {
+
     private final ParentVersionResolver parentVersionResolver;
     private final ApiSourceResolver apiSourceResolver;
     private final OpenApiAnalyzer openApiAnalyzer;
     private final ProjectWriter projectWriter;
+
     public GeneratorService() {
         this(new ParentVersionResolver(), new ApiSourceResolver(), new OpenApiAnalyzer(), new ProjectWriter());
     }
+
     GeneratorService(ParentVersionResolver parentVersionResolver,
                      ApiSourceResolver apiSourceResolver,
                      OpenApiAnalyzer openApiAnalyzer,
@@ -29,6 +35,7 @@ public class GeneratorService {
         this.openApiAnalyzer = openApiAnalyzer;
         this.projectWriter = projectWriter;
     }
+
     public Path generate(GenerateRequest request) throws IOException, InterruptedException {
         String artifactId = sanitizeArtifactId(request);
         String parentVersion = parentVersionResolver.resolve(request.parentVersion());
@@ -103,6 +110,7 @@ public class GeneratorService {
             throw new IOException("Autobuild failed with exit code " + exitCode);
         }
     }
+
     private String sanitizeArtifactId(GenerateRequest request) {
         String raw = request.artifactId() == null || request.artifactId().isBlank()
                 ? request.projectName()
@@ -114,6 +122,7 @@ public class GeneratorService {
         }
         return normalized;
     }
+
     private String deriveBasePackage(String groupId, String artifactId) {
         List<String> groupTokens = new ArrayList<>(List.of(groupId.split("\\.")));
         List<String> artifactTokens = new ArrayList<>(List.of(artifactId.split("[-.]")));
@@ -130,6 +139,7 @@ public class GeneratorService {
         }
         return String.join(".", groupTokens) + "." + String.join(".", artifactTokens);
     }
+
     private String resolveBasePackage(GenerateRequest request, String artifactId) {
         String candidate;
         if (request.packageName() != null && !request.packageName().isBlank()) {
@@ -139,6 +149,7 @@ public class GeneratorService {
         }
         return ensureBffPackage(candidate, artifactId);
     }
+
     private String ensureBffPackage(String packageName, String artifactId) {
         if (!(artifactId.equalsIgnoreCase("bff")
                 || artifactId.toLowerCase().endsWith("-bff")
@@ -151,6 +162,7 @@ public class GeneratorService {
         }
         return packageName + ".bff";
     }
+
     private Path resolveProjectDir(Path outputDir, String artifactId) {
         if (outputDir == null) {
             return Path.of(artifactId);
@@ -162,9 +174,11 @@ public class GeneratorService {
         }
         return normalized.resolve(artifactId);
     }
+
     private Path resolveOpenApiTargetPath(String source, Path projectDir, String side) {
         return projectDir.resolve("src/main/openapi/" + side + "/" + resolveSourceFileName(source, side));
     }
+
     private String resolveSourceFileName(String source, String side) {
         try {
             Path fileName;

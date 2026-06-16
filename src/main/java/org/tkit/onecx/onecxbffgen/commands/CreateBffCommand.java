@@ -6,14 +6,13 @@ import org.tkit.onecx.onecxbffgen.service.GeneratorService;
 import picocli.CommandLine;
 
 import java.nio.file.Path;
-import java.util.concurrent.Callable;
 
 @CommandLine.Command(
         name = "create-bff",
         mixinStandardHelpOptions = true,
         description = "Creates a OneCX BFF project from frontend/backend OpenAPI sources"
 )
-public class CreateBffCommand implements Callable<Integer> {
+public class CreateBffCommand implements Runnable {
 
     @CommandLine.Option(names = { "--name", "--project-name" }, required = true, description = "Display project name")
     String projectName;
@@ -50,7 +49,7 @@ public class CreateBffCommand implements Callable<Integer> {
     }
 
     @Override
-    public Integer call() {
+    public void run() {
         GenerateRequest request = new GenerateRequest(
                 projectName,
                 groupId,
@@ -66,10 +65,8 @@ public class CreateBffCommand implements Callable<Integer> {
         try {
             Path result = generatorService.generate(request);
             System.out.println("Generated BFF project in: " + result.toAbsolutePath());
-            return 0;
         } catch (Exception e) {
             System.err.println("Generation failed: " + e.getMessage());
-            return 1;
         }
     }
 }
