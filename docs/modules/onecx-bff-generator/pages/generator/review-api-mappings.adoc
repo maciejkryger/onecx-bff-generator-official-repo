@@ -1,0 +1,362 @@
+ifdef::env-site[]
+include::partial$_attributes.adoc[]
+endif::[]
+:imagesdir: ../../images
+
+= Review and Customize API Mappings
+
+After generating a Backend for Frontend (BFF) project, the next step is to review the generated API mappings and controller implementation.
+
+The OneCX BFF Generator creates an initial project structure based on the provided frontend and backend OpenAPI specifications. The generated code provides a starting point for connecting the frontend-facing API with the backend service API.
+
+[NOTE]
+====
+The generated BFF implementation is a scaffold. It should be reviewed and adapted before being used as production-ready code.
+====
+
+== Purpose of this Step
+
+The BFF generator analyzes two OpenAPI specifications:
+
+Frontend OpenAPI::
+Defines the API exposed by the generated BFF to the frontend application.
+
+Backend OpenAPI::
+Defines the backend API consumed by the generated BFF.
+
+Based on these specifications, the generator creates controller and mapper classes that help connect both API contracts.
+
+The generated code usually needs to be reviewed in the following areas:
+
+* controller implementation
+* frontend-to-backend request mapping
+* backend-to-frontend response mapping
+* error handling
+* response status handling
+* generated mapper methods
+* generated tests
+* OpenAPI operation alignment
+
+== Generated Controller Implementation
+
+Generated controllers are located under the generated BFF package, for example:
+
+[source,text]
+----
+src/main/java/org/tkit/onecx/demo/bff/rs/controllers/
+----
+
+A generated controller usually contains:
+
+* injected backend REST client
+* injected mapper
+* generated endpoint methods
+* backend call delegation
+* response handling
+* exception mapping support
+
+.Example generated controller location
+[source,text]
+----
+src/main/java/org/tkit/onecx/demo/bff/rs/controllers/ProductsRestController.java
+----
+
+== ACTION: Review Generated Controllers
+
+After generation, review each generated controller and verify:
+
+* whether the correct backend client method is called
+* whether path parameters are passed correctly
+* whether request bodies are mapped correctly
+* whether response bodies are mapped correctly
+* whether HTTP status codes are handled as expected
+* whether additional business logic is required
+
+Example areas to check:
+
+[source,java]
+----
+Response backendResponse = client.searchProducts(...);
+----
+
+[source,java]
+----
+return Response
+        .status(backendResponse.getStatus())
+        .entity(mapper.map(result))
+        .build();
+----
+
+[IMPORTANT]
+====
+Generated controller methods may require manual adjustments when the frontend API and backend API do not match one-to-one.
+====
+
+== API Mapping Review
+
+The BFF layer is responsible for adapting backend APIs to frontend needs.
+
+This may include:
+
+* renaming fields
+* transforming request objects
+* transforming response objects
+* combining multiple backend calls
+* filtering backend data
+* enriching responses
+* changing response structures
+* handling frontend-specific validation
+
+== Mapper Classes
+
+Generated mapper classes are located under:
+
+[source,text]
+----
+src/main/java/<base-package>/rs/mappers/
+----
+
+Example:
+
+[source,text]
+----
+src/main/java/org/tkit/onecx/demo/bff/rs/mappers/ProductMapper.java
+----
+
+Mapper classes are typically generated to convert:
+
+* frontend request DTOs to backend request models
+* backend response models to frontend response DTOs
+* backend entities to frontend DTOs
+* frontend DTOs to backend entities where required
+
+== ACTION: Review Generated Mappers
+
+Review generated mapper methods and verify that the mappings match the expected API contract.
+
+Example generated mapper method:
+
+[source,java]
+----
+@BeanMapping(ignoreByDefault = true)
+BackendProduct map(ProductDTO source);
+----
+
+Depending on your use case, you may need to:
+
+* add explicit field mappings
+* rename mapped fields
+* ignore fields
+* map nested objects
+* map enum values
+* add custom mapping methods
+
+Example with explicit MapStruct mapping:
+
+[source,java]
+----
+@Mapping(target = "productName", source = "name")
+@Mapping(target = "productPrice", source = "price")
+BackendProduct map(ProductDTO source);
+----
+
+[NOTE]
+====
+Generated mapper methods are intentionally minimal. Add explicit mappings where frontend and backend models differ.
+====
+
+== Request Mapping
+
+When the frontend API defines request objects that differ from backend request objects, the generated mapper should convert between both models.
+
+Example:
+
+[source,java]
+----
+BackendSearchCriteria criteria = mapper.map(searchProductRequestDTO);
+Response backendResponse = client.searchProducts(criteria);
+----
+
+== ACTION: Verify Request Mapping
+
+Check whether:
+
+* all required backend fields are populated
+* optional frontend fields are handled correctly
+* default values are set where required
+* search and filter criteria are mapped correctly
+* pagination information is passed correctly
+
+== Response Mapping
+
+The BFF should return frontend-oriented response models. Backend response structures may differ and often require mapping.
+
+Example:
+
+[source,java]
+----
+BackendProduct result = backendResponse.readEntity(BackendProduct.class);
+return Response
+        .status(backendResponse.getStatus())
+        .entity(mapper.map(result))
+        .build();
+----
+
+== ACTION: Verify Response Mapping
+
+Check whether:
+
+* backend model fields are correctly exposed to the frontend
+* internal backend fields are not leaked
+* nested objects are mapped correctly
+* lists and paginated responses are handled correctly
+* empty responses and error responses are handled correctly
+
+== Error Handling
+
+Generated controllers may include exception mapper support.
+
+Typical generated exception mapper classes are located under:
+
+[source,text]
+----
+src/main/java/<base-package>/rs/mappers/
+----
+
+Example:
+
+[source,text]
+----
+ExceptionMapper.java
+----
+
+== ACTION: Review Error Handling
+
+Verify that:
+
+* backend errors are mapped to frontend-compatible error responses
+* validation errors are handled correctly
+* HTTP status codes are preserved or adapted as needed
+* error payloads follow the expected frontend contract
+
+== OpenAPI Operation Alignment
+
+The generator tries to match frontend operations with backend operations based on OpenAPI metadata such as:
+
+* HTTP method
+* path
+* operation ID
+* request body type
+* response type
+* tags
+
+== ACTION: Verify Operation Matching
+
+Check generated controller methods and make sure that each frontend operation delegates to the correct backend operation.
+
+Typical things to verify:
+
+* `GET` endpoints call the expected backend `GET` operation
+* `POST` endpoints pass request bodies correctly
+* `PUT` or `PATCH` endpoints map update requests correctly
+* `DELETE` endpoints handle empty responses correctly
+* path parameters are forwarded in the correct order
+
+== Fallback Controller Mode
+
+If the frontend OpenAPI does not contain paths, the generator may generate fallback controllers based on the backend API.
+
+In this case, generated controllers expose backend-like endpoints and use backend model types directly.
+
+[NOTE]
+====
+Fallback mode is useful for bootstrapping a BFF when the frontend API contract is not available yet.
+====
+
+== ACTION: Review Fallback Controllers
+
+When fallback mode is used, verify:
+
+* generated endpoints match the expected temporary API
+* backend model imports are correct
+* frontend-specific API contracts are added later
+* fallback endpoints are replaced or adapted once the frontend OpenAPI is available
+
+== Generated Tests
+
+The generator creates test scaffolding for generated controllers.
+
+Typical generated test locations:
+
+[source,text]
+----
+src/test/java/<base-package>/rs/
+----
+
+Example:
+
+[source,text]
+----
+src/test/java/org/tkit/onecx/demo/bff/rs/ProductsRestControllerTest.java
+src/test/java/org/tkit/onecx/demo/bff/rs/ProductsRestControllerIT.java
+----
+
+== ACTION: Review and Extend Tests
+
+Generated tests should be reviewed and extended.
+
+Check whether:
+
+* generated endpoints are tested
+* authorization behavior is covered
+* backend mock responses match expected contracts
+* request bodies are realistic
+* response assertions validate actual payloads
+* error scenarios are covered
+
+Run the tests with:
+
+[source,bash]
+----
+mvn test
+----
+
+== Build After Customization
+
+After reviewing and customizing generated controllers, mappers and tests, build the generated project.
+
+[source,bash]
+----
+mvn clean package
+----
+
+If required during local development, tests can be skipped temporarily:
+
+[source,bash]
+----
+mvn clean package -DskipTests
+----
+
+[IMPORTANT]
+====
+Skipping tests should only be used for temporary local verification. Before committing changes, run the full test suite.
+====
+
+== Recommended Review Checklist
+
+Use the following checklist after generation:
+
+* [ ] Generated project builds successfully.
+* [ ] Controllers call the correct backend clients.
+* [ ] Request mappings are correct.
+* [ ] Response mappings are correct.
+* [ ] HTTP status handling is correct.
+* [ ] Error handling is aligned with frontend expectations.
+* [ ] Generated mapper methods are reviewed.
+* [ ] OpenAPI operation matching is verified.
+* [ ] Generated tests pass.
+* [ ] Additional business logic is implemented where required.
+
+== Next Steps
+
+After reviewing and customizing the generated API mappings and controller implementation, continue with implementing business-specific logic and validating the generated BFF against the frontend application.
