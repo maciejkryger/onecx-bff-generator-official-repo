@@ -1,0 +1,235 @@
+ifdef::env-site[]
+include::partial$_attributes.adoc[]
+endif::[]
+:imagesdir: ../../images
+
+= Create a Backend for Frontend
+
+What is a Backend for Frontend?::
+include::../../partials/_glossary.adoc[tag=backend-for-frontend]
+
+
+[NOTE]
+====
+The BFF project created with the OneCX BFF Generator is the base of a functional Backend for Frontend application.
+You will need to further review, develop and customize the generated controllers, mappers and configuration to meet your specific API contracts, integration requirements and business logic.
+====
+
+== Generate a Backend for Frontend (BFF)
+
+The generator creates a Quarkus-based Backend for Frontend project from frontend and backend OpenAPI definitions.
+
+The creation of a new BFF project takes a while, as the generator sets up a complete Maven project with application configuration, controller skeletons, mapper classes, OpenAPI integration, test scaffolding, Docker files, Helm chart files and GitHub Actions workflow files.
+
+Releases of generator:
+
+https://github.com/onecx/onecx-bff-generator/releases
+
+.Generate the BFF with following commands
+
+Download the latest release of the generator from GitHub and save it as `onecx-bff-generator.jar` in your desired directory. +
+
+[source,bash]
+----
+curl -L -o onecx-bff-generator.jar \
+https://github.com/onecx/onecx-bff-generator/releases/download/<version>/onecx-bff-generator.jar
+----
+
+Use generator with following command:
+
+[source,bash]
+----
+java -jar onecx-bff-generator.jar create-bff \
+  --name onecx-demo-bff \
+  --group org.tkit.onecx \
+  --package org.tkit.onecx.demo.bff \
+  --frontend-api ./openapi/frontend.yaml \
+  --backend-api ./openapi/backend.yaml \
+  --autobuild
+----
+
+The flag `--autobuild` will build the application after generation. If you want to build it manually, you can omit this flag and run `mvn clean package` in the generated directory.
+
+The flag `--name` is used to specify the name of the generated BFF, which will be used as base for project name, artifact name and some essential application parts.
+
+The flag `--group` is used to specify the Maven `groupId` of the generated BFF project.
+
+The flag `--package` is used to specify the base Java package name of the generated BFF project.
+
+The flag `--frontend-api` is used to specify the path or URL to the frontend OpenAPI specification. This API represents the contract exposed by the generated BFF.
+
+The flag `--backend-api` is used to specify the path or URL to the backend OpenAPI specification. This API represents the backend service consumed by the generated BFF.
+
+The flag `--artifact-id` can be used to specify a custom Maven `artifactId`. If omitted, the artifact ID is derived from the project name.
+
+The flag `--output-dir` can be used to specify a custom output directory for the generated project.
+
+The flag `--parent-version` can be used to specify a concrete `onecx-quarkus3-parent` version. If omitted, the generator resolves the latest available release.
+
+.Excerpt of the generation start output exemplary for *demo* BFF application
+image::generating_bff_without_autobuild.png[]
+
+.Excerpt of the generation start output exemplary for *demo* BFF application
+image::start_generating_bff_with_autobuild.png[]
+
+.Excerpt of the generation result output exemplary for *demo* BFF application
+image::result_generating_bff_with_autobuild.png[]
+
+The generator creates a new directory with the name provided by the `--name` flag and sets up the OneCX basic BFF structure for controller, mapper, API integration and tests. +
+
+Please note that the project name from your command is used as base for some essential application parts as following:
+
+* `onecx-demo-bff` +
+Project name +
+Maven artifact ID, unless explicitly overridden +
+Helm chart name for deployment and microservice registration in OneCX +
+Application metadata
+
+* `org.tkit.onecx.demo.bff` +
+Package name for the generated BFF
+
+== Copy-Paste Example
+
+The following example can be used in a typical local OneCX workspace. It assumes that the UI and SVC repositories are checked out below `~/projects/onecx`.
+
+[source,bash]
+----
+export ONECX_HOME="${ONECX_HOME:-$HOME/projects/onecx}"
+
+curl -L -o onecx-bff-generator.jar \
+https://github.com/onecx/onecx-bff-generator/releases/download/<version>/onecx-bff-generator.jar
+
+java -jar onecx-bff-generator.jar create-bff \
+  --name onecx-demo-bff \
+  --group org.tkit.onecx \
+  --package org.tkit.onecx.demo.bff \
+  --frontend-api "$ONECX_HOME/onecx-demo-ui/demo/src/assets/api/openapi-bff.yaml" \
+  --backend-api "$ONECX_HOME/onecx-demo-svc/src/main/openapi/onecx-demo-svc-internal.yaml" \
+  --output-dir "$ONECX_HOME" \
+  --autobuild
+----
+
+.Excerpt of the copy-paste generation start output with autobuild
+image::start_generating_bff_with_autobuild.png[]
+
+.Excerpt of the copy-paste generation result output with autobuild
+image::result_generating_bff_with_autobuild.png[]
+
+== Local Development Example
+
+If you build the generator locally, you can run it directly from the generated JAR.
+
+[source,bash]
+----
+cd ~/projects/onecx/onecx-bff-generator
+mvn -DskipTests clean package -Dquarkus.package.type=uber-jar
+
+java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar create-bff \
+  --name onecx-demo-bff \
+  --group org.tkit.onecx \
+  --package org.tkit.onecx.demo.bff \
+  --frontend-api ~/projects/onecx/onecx-demo-ui/demo/src/assets/api/openapi-bff.yaml \
+  --backend-api ~/projects/onecx/onecx-demo-svc/src/main/openapi/onecx-demo-svc-internal.yaml \
+  --output-dir ~/projects/onecx \
+  --autobuild
+----
+
+.Excerpt of the local development generation start output with autobuild
+image::start_generating_bff_with_autobuild.png[]
+
+.Excerpt of the local development generation result output with autobuild
+image::result_generating_bff_with_autobuild.png[]
+
+== OpenAPI Input
+
+The BFF generator requires two OpenAPI specifications:
+
+Frontend OpenAPI::
+Defines the API exposed by the generated BFF to the frontend application.
+
+Backend OpenAPI::
+Defines the backend API consumed by the generated BFF.
+
+Example:
+
+[source,bash]
+----
+java -jar onecx-bff-generator.jar create-bff \
+  --name onecx-product-bff \
+  --group org.tkit.onecx \
+  --package org.tkit.onecx.product.bff \
+  --frontend-api ./openapi/product-frontend.yaml \
+  --backend-api ./openapi/product-backend.yaml
+----
+
+.Excerpt of the generation output without autobuild
+image::generating_bff_without_autobuild.png[]
+
+If the backend OpenAPI is available as URL, it can also be provided directly:
+
+[source,bash]
+----
+java -jar onecx-bff-generator.jar create-bff \
+  --name onecx-product-bff \
+  --group org.tkit.onecx \
+  --package org.tkit.onecx.product.bff \
+  --frontend-api ./openapi/product-frontend.yaml \
+  --backend-api https://example.org/openapi/product-backend.yaml
+----
+
+copy-paste URL example:
+[source,bash]
+----
+export ONECX_HOME="${ONECX_HOME:-$HOME/projects/onecx}"
+
+curl -L -o onecx-bff-generator.jar \
+https://github.com/onecx/onecx-bff-generator/releases/download/v0.1.1/onecx-bff-generator.jar
+
+java -jar onecx-bff-generator.jar create-bff \
+--name onecx-demo-bff \
+--group org.tkit.onecx \
+--package org.tkit.onecx.demo \
+--frontend-api "ONECX_HOME/onecx-demo-ui/demo/src/assets/api/openapi-bff.yaml" \
+--backend-api https://raw.githubusercontent.com/maciejkryger/onecx-demo-svc/refs/heads/main/src/main/openapi/onecx-demo-svc-internal.yaml \
+--output-dir "ONECX_HOME" \
+--autobuild
+----
+
+== Build the Generated BFF
+
+If the BFF was generated without `--autobuild`, build the project manually:
+
+[source,bash]
+----
+cd onecx-demo-bff
+mvn clean package
+----
+
+If you want to skip tests during a local build, use:
+
+[source,bash]
+----
+mvn clean package -DskipTests
+----
+
+== Generated Project
+
+The generated project contains:
+
+* Maven project configuration
+* Quarkus application configuration
+* REST controller skeletons
+* mapper classes
+* generated test scaffolding
+* OpenAPI integration setup
+* Docker files
+* Helm chart files
+* GitHub Actions workflow files
+* Test for jacoco coverage at least 80%
+
+[NOTE]
+====
+Generated controller and mapper classes are a starting point. You should review and adapt the generated API mappings before using the BFF in a real environment.
+====
+
+Next step may be to xref:./review-api-mappings.adoc[review and customize generated API mappings and controller implementation].
