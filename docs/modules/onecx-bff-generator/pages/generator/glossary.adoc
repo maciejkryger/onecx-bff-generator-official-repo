@@ -5,22 +5,11 @@ endif::[]
 
 = Glossary
 
-A collection of essential terms and concepts in the context of the *OneCX SVC Generator*.
+A collection of essential terms and concepts in the context of the *OneCX BFF Generator*.
 
-[#backend-svc]
-== Backend Service (SVC)
-include::./../../partials/_glossary.adoc[tag=backend-svc]
-
-[#entity]
-[#resource]
-== Entity / Resource
-include::./../../partials/_glossary.adoc[tag=entity]
-
-
-[#entity-schema]
-== Entity Schema
-include::./../../partials/_glossary.adoc[tag=entity-schema]
-
+[#backend-for-frontend]
+== Backend For Frontend Service (BFF)
+include::./../../partials/_glossary.adoc[tag=backend-for-frontend]
 
 [#permission]
 == Permission
