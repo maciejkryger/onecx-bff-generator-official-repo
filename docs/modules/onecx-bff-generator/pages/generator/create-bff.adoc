@@ -48,23 +48,37 @@ java -jar onecx-bff-generator.jar create-bff \
   --autobuild
 ----
 
-The flag `--autobuild` will build the application after generation. If you want to build it manually, you can omit this flag and run `mvn clean package` in the generated directory.
+[cols="1,4", options="header"]
+|===
+|Flag |Description
 
-The flag `--name` is used to specify the name of the generated BFF, which will be used as base for project name, artifact name and some essential application parts.
+|`--autobuild`
+|Builds the application after generation. If you want to build it manually, you can omit this flag and run `mvn clean package` in the generated directory.
 
-The flag `--group` is used to specify the Maven `groupId` of the generated BFF project.
+|`--name`
+|Specifies the name of the generated BFF. The value is used as the base for the project name, artifact name and essential application parts.
 
-The flag `--package` is used to specify the base Java package name of the generated BFF project.
+|`--group`
+|Specifies the Maven `groupId` of the generated BFF project.
 
-The flag `--frontend-api` is used to specify the path or URL to the frontend OpenAPI specification. This API represents the contract exposed by the generated BFF.
+|`--package`
+|Specifies the base Java package name of the generated BFF project.
 
-The flag `--backend-api` is used to specify the path or URL to the backend OpenAPI specification. This API represents the backend service consumed by the generated BFF.
+|`--frontend-api`
+|Specifies the path or URL to the frontend OpenAPI specification. This API represents the contract exposed by the generated BFF.
 
-The flag `--artifact-id` can be used to specify a custom Maven `artifactId`. If omitted, the artifact ID is derived from the project name.
+|`--backend-api`
+|Specifies the path or URL to the backend OpenAPI specification. This API represents the backend service consumed by the generated BFF.
 
-The flag `--output-dir` can be used to specify a custom output directory for the generated project.
+|`--artifact-id`
+|Specifies a custom Maven `artifactId`. If omitted, the artifact ID is derived from the project name.
 
-The flag `--parent-version` can be used to specify a concrete `onecx-quarkus3-parent` version. If omitted, the generator resolves the latest available release.
+|`--output-dir`
+|Specifies a custom output directory for the generated project.
+
+|`--parent-version`
+|Specifies a concrete `onecx-quarkus3-parent` version. If omitted, the generator resolves the latest available release.
+|===
 
 .Excerpt of the generation start output exemplary for *demo* BFF application
 image::generating_bff_without_autobuild.png[]
