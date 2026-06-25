@@ -53,16 +53,16 @@ java -jar onecx-bff-generator.jar create-bff \
 |Flag |Description
 
 |`--autobuild`
-|Builds the application after generation. If you want to build it manually, you can omit this flag and run `mvn clean package` in the generated directory.
+|Builds the generated BFF project after generation. If you want to build it manually, you can omit this flag and run `mvn clean package` in the generated directory.
 
 |`--name`
-|Specifies the name of the generated BFF. The value is used as the base for the project name, artifact name and essential application parts.
+|Specifies the generated BFF project name. If `--artifact-id` is not provided, this value is also used as the default Maven `artifactId`. The value is also used for project-level generator metadata.
 
 |`--group`
-|Specifies the Maven `groupId` of the generated BFF project.
+|Specifies the Maven `groupId` of the generated BFF project. The value is also written to generator metadata.
 
 |`--package`
-|Specifies the base Java package name of the generated BFF project.
+|Specifies the base Java package of the generated BFF project. If omitted, the package is derived from `--group` and `--name`.
 
 |`--frontend-api`
 |Specifies the path or URL to the frontend OpenAPI specification. This API represents the contract exposed by the generated BFF.
@@ -71,10 +71,10 @@ java -jar onecx-bff-generator.jar create-bff \
 |Specifies the path or URL to the backend OpenAPI specification. This API represents the backend service consumed by the generated BFF.
 
 |`--artifact-id`
-|Specifies a custom Maven `artifactId`. If omitted, the artifact ID is derived from the project name.
+|Specifies the Maven `artifactId` of the generated BFF project. If omitted, the artifact ID is derived from `--name`.
 
 |`--output-dir`
-|Specifies a custom output directory for the generated project.
+|Specifies the output directory where the generated BFF project should be created. If omitted, the current directory is used.
 
 |`--parent-version`
 |Specifies a concrete `onecx-quarkus3-parent` version. If omitted, the generator resolves the latest available release.
@@ -138,13 +138,15 @@ If you build the generator locally, you can run it directly from the generated J
 cd ~/projects/onecx/onecx-bff-generator
 mvn -DskipTests clean package -Dquarkus.package.type=uber-jar
 
-java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar create-bff \
+export ONECX_HOME="${ONECX_HOME:-$HOME/projects/onecx}"
+
+java -jar "$ONECX_HOME"/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar create-bff \
   --name onecx-demo-bff \
   --group org.tkit.onecx \
   --package org.tkit.onecx.demo.bff \
-  --frontend-api ~/projects/onecx/onecx-demo-ui/demo/src/assets/api/openapi-bff.yaml \
-  --backend-api ~/projects/onecx/onecx-demo-svc/src/main/openapi/onecx-demo-svc-internal.yaml \
-  --output-dir ~/projects/onecx \
+  --frontend-api "$ONECX_HOME"/onecx-demo-ui/demo/src/assets/api/openapi-bff.yaml \
+  --backend-api https://raw.githubusercontent.com/maciejkryger/onecx-demo-svc/refs/heads/main/src/main/openapi/onecx-demo-svc-internal.yaml \
+  --output-dir "$ONECX_HOME" \
   --autobuild
 ----
 

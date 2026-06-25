@@ -9,6 +9,7 @@
         <version>${parentVersion}</version>
     </parent>
 
+    <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
     <name>${projectDisplayName}</name>
     <version>999-SNAPSHOT</version>
