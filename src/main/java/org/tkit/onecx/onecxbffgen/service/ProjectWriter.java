@@ -1,4 +1,5 @@
 package org.tkit.onecx.onecxbffgen.service;
+
 import org.tkit.onecx.onecxbffgen.model.DependencyProfile;
 import org.tkit.onecx.onecxbffgen.model.OperationModel;
 import org.tkit.onecx.onecxbffgen.model.SchemaModel;
@@ -16,16 +17,20 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 public class ProjectWriter {
     private static final Pattern PATH_PARAM_PATTERN = Pattern.compile("\\{([^}/]+)}");
     private static final String BACKEND_CONFIG_KEY = "backend_api";
     private final TemplateService templateService;
+
     public ProjectWriter() {
         this(new TemplateService());
     }
+
     ProjectWriter(TemplateService templateService) {
         this.templateService = templateService;
     }
+
     public void writePom(Path projectDir,
                          String projectName,
                          String groupId,
@@ -88,6 +93,7 @@ public class ProjectWriter {
         values.put("backendDownloadPlugin", downloadPlugin);
         writeTemplate(projectDir.resolve("pom.xml"), "bff-project/pom.xml.tpl", values);
     }
+
     public void writeGeneratedReadme(Path projectDir,
                                      String projectName,
                                      String groupId,
@@ -105,6 +111,7 @@ public class ProjectWriter {
         values.put("curlExamples", buildCurlExamples(controllers));
         writeTemplate(projectDir.resolve("README.md"), "bff-project/README.md.tpl", values);
     }
+
     public void writeApplicationFiles(Path projectDir,
                                       String projectName,
                                       String groupId,
@@ -118,6 +125,7 @@ public class ProjectWriter {
         appValues.put("backendSpecKey", toPropertyToken(backendFileName));
         appValues.put("backendClientBasePackage", "gen." + basePackage + ".client");
         appValues.put("backendConfigKey", BACKEND_CONFIG_KEY);
+        appValues.put("backendServiceName", deriveBackendServiceName(projectName));
         writeTemplate(projectDir.resolve("src/main/resources/application.properties"),
                 "bff-project/application.properties.tpl", appValues);
         writeTemplate(projectDir.resolve(".gitignore"), "bff-project/gitignore.tpl", Map.of());
@@ -158,6 +166,7 @@ public class ProjectWriter {
                 : projectName;
         return "onecx/" + base;
     }
+
     public void writeControllerClasses(Path projectDir,
                                        String pkg,
                                        Map<String, List<OperationModel>> controllers,
@@ -194,6 +203,7 @@ public class ProjectWriter {
             writeTemplate(baseDir.resolve(controllerName + ".java"), "entity/Controller.java.tpl", values);
         }
     }
+
     public void writeMapperClasses(Path projectDir, String pkg, List<SchemaModel> frontend, List<SchemaModel> backend,
             Map<String, List<OperationModel>> controllers) throws IOException {
         Path baseDir = projectDir.resolve("src/main/java/" + pkg.replace('.', '/') + "/rs/mappers");
@@ -361,6 +371,7 @@ public class ProjectWriter {
             writeTemplate(baseDir.resolve(mapperName + ".java"), "entity/Mapper.java.tpl", values);
         }
     }
+
     public void writeTestScaffold(Path projectDir, String pkg, String artifactId,
                                    Set<String> permissionKeys,
                                    Map<String, List<OperationModel>> controllers,
@@ -386,6 +397,7 @@ public class ProjectWriter {
                         "alicePermissions", buildPermissionsJsonBlock(permissionKeys, artifactId, List.of("read", "write", "delete")),
                         "bobPermissions", buildPermissionsJsonBlock(permissionKeys, artifactId, List.of("read"))));
     }
+
     private String buildControllerMethods(List<OperationModel> operations, boolean implementFrontendApi, boolean todoStubMode) {
         StringBuilder sb = new StringBuilder();
         for (OperationModel op : operations) {
@@ -554,6 +566,7 @@ public class ProjectWriter {
         }
         return sb.toString();
     }
+
     private int resolveSuccessStatus(int openApiStatusCode, String httpMethod, boolean hasResponse) {
         if (openApiStatusCode > 0) {
             return openApiStatusCode;
@@ -566,12 +579,14 @@ public class ProjectWriter {
         }
         return 200;
     }
+
     private String buildMockitoAnyArgs(int count) {
         if (count == 0) {
             return "";
         }
         return String.join(", ", java.util.Collections.nCopies(count, "org.mockito.ArgumentMatchers.any()"));
     }
+
     private List<String> pathParams(String path) {
         if (path == null) return List.of();
         Matcher matcher = PATH_PARAM_PATTERN.matcher(path);
@@ -581,11 +596,13 @@ public class ProjectWriter {
         }
         return result;
     }
+
     private String methodSignature(List<String> params) {
         return String.join(", ", params.stream()
                 .map(name -> "String " + sanitizeFieldName(name))
                 .toList());
     }
+
     private void writeTemplate(Path path, String templateName, Map<String, String> values) throws IOException {
         Files.createDirectories(path.getParent());
         Files.writeString(path, templateService.render(templateName, values));
@@ -649,6 +666,7 @@ public class ProjectWriter {
         }
         return sb.toString();
     }
+
     private String sanitizeTypeName(String value) {
         if (value == null) return "GeneratedType";
         String clean = value.replaceAll("[^a-zA-Z0-9]", " ");
@@ -662,6 +680,7 @@ public class ProjectWriter {
         }
         return sb.isEmpty() ? "GeneratedType" : sb.toString();
     }
+
     private String sanitizeFieldName(String value) {
         if (value == null) return "field";
         String cleaned = value.replaceAll("[^a-zA-Z0-9]", " ").trim();
@@ -687,6 +706,7 @@ public class ProjectWriter {
         }
         return sb.toString();
     }
+
     private String sanitizeMethodName(String value) {
         String name = sanitizeFieldName(value);
         if (Character.isDigit(name.charAt(0))) {
@@ -765,6 +785,7 @@ public class ProjectWriter {
         String typePart = sanitizeTypeName(feRespRaw != null ? feRespRaw : operationId);
         return "to" + typePart;
     }
+
     private String normalizeEntityName(String value) {
         String stripped = sanitizeTypeName(value)
                 .replaceAll("(Dto|DTO|Response|Request|Internal|External)$", "");
@@ -772,10 +793,12 @@ public class ProjectWriter {
         stripped = stripped.replaceAll("^(Search|Create|Update|Delete|Get|List|Fetch|Find)(.+)$", "$2");
         return stripped.toLowerCase(Locale.ROOT);
     }
+
     private String mapperBaseName(String sanitizedTypeName) {
         String stripped = sanitizedTypeName.replaceAll("(Dto|DTO|Response|Request|Internal|External)$", "");
         return stripped.isBlank() ? sanitizedTypeName : stripped;
     }
+
     private boolean shouldGenerateMapper(String schemaName) {
         String sanitized = sanitizeTypeName(schemaName);
         return !(sanitized.startsWith("ProblemDetail")
@@ -783,6 +806,7 @@ public class ProjectWriter {
                 || sanitized.endsWith("SearchCriteria")
                 || sanitized.endsWith("PageResult"));
     }
+
     private String buildMapperUsesClause(SchemaModel source, Map<String, String> normalizedToMapper) {
         List<String> uses = new ArrayList<>();
         String current = mapperBaseName(sanitizeTypeName(source.name())) + "Mapper";
@@ -797,6 +821,7 @@ public class ProjectWriter {
         }
         return ", uses = { " + String.join(", ", uses.stream().map(use -> use + ".class").toList()) + " }";
     }
+
     private String buildPermissionsJsonBlock(Set<String> keys, String artifactId, List<String> actions) {
         Set<String> resolved = (keys == null || keys.isEmpty())
                 ? Set.of(defaultPermissionKey(artifactId))
@@ -811,6 +836,7 @@ public class ProjectWriter {
         String normalized = value.replaceAll("[^a-zA-Z0-9]", "_").replaceAll("_+", "_").replaceAll("^_|_$", "");
         return normalized.toLowerCase(Locale.ROOT);
     }
+
     private String defaultPermissionKey(String artifactId) {
         String[] tokens = artifactId.split("[-.]");
         for (String token : tokens) {
@@ -821,42 +847,34 @@ public class ProjectWriter {
         }
         return "resource";
     }
+
+    private String deriveBackendServiceName(String projectName) {
+        if (projectName == null || projectName.isBlank()) {
+            throw new IllegalArgumentException("Project name must not be blank");
+        }
+
+        String normalized = projectName
+                .toLowerCase()
+                .replaceAll("[^a-z0-9.-]", "-")
+                .replaceAll("-+", "-")
+                .replaceAll("^-|-$", "");
+
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Could not derive backend service name from project name");
+        }
+
+        if ("bff".equals(normalized)) {
+            return "svc";
+        }
+
+        if (normalized.endsWith("-bff")) {
+            return normalized.substring(0, normalized.length() - "-bff".length()) + "-svc";
+        }
+
+        if (normalized.contains("-bff-")) {
+            return normalized.replace("-bff-", "-svc-");
+        }
+
+        return normalized + "-svc";
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

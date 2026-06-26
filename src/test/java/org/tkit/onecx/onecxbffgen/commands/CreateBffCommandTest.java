@@ -180,6 +180,12 @@ class CreateBffCommandTest {
         assertTrue(appProps.contains("onecx.generator.package=org.tkit.onecx.demo.bff"));
         assertTrue(appProps.contains("onecx.permissions.application-id=${quarkus.application.name}"));
         assertTrue(appProps.contains("quarkus.openapi-generator.codegen.input-base-dir=target/tmp/openapi"));
+        assertTrue(appProps.contains(
+                "%prod.quarkus.rest-client.backend_api.url=http://onecx-demo-svc:8080"
+        ));
+        assertFalse(appProps.contains(
+                "%prod.quarkus.rest-client.backend_api.url=http://localhost:8080"
+        ));
         assertTrue(Files.exists(generated.resolve("src/main/java/org/tkit/onecx/demo/bff/rs/controllers/UsersRestController.java")));
     }
 

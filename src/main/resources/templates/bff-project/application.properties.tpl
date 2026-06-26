@@ -13,7 +13,7 @@ onecx.generator.group=${groupId}
 onecx.generator.package=${basePackage}
 
 # PROD
-%prod.quarkus.rest-client.${backendConfigKey}.url=http://localhost:8080
+%prod.quarkus.rest-client.${backendConfigKey}.url=http://${backendServiceName}:8080
 %prod.quarkus.rest-client.${backendConfigKey}.providers=io.quarkus.oidc.client.reactive.filter.OidcClientRequestReactiveFilter
 %prod.quarkus.oidc-client.client-id=${quarkus.application.name}
 
@@ -36,6 +36,7 @@ quarkus.openapi-generator.codegen.spec.${backendSpecKey}.return-response=true
 quarkus.openapi-generator.codegen.spec.${backendSpecKey}.additional-api-type-annotations=@org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;
 quarkus.openapi-generator.codegen.spec.${backendSpecKey}.additional-model-type-annotations=@io.quarkus.runtime.annotations.RegisterForReflection;
 quarkus.openapi-generator.codegen.spec.${backendSpecKey}.enable-security-generation=false
+
 # TEST
 quarkus.test.integration-test-profile=test
 %test.quarkus.http.test-port=0
