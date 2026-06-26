@@ -9,6 +9,7 @@
         <version>${parentVersion}</version>
     </parent>
 
+    <groupId>${groupId}</groupId>
     <artifactId>${artifactId}</artifactId>
     <name>${projectDisplayName}</name>
     <version>999-SNAPSHOT</version>
@@ -98,12 +99,7 @@ ${legacyJunitDependencies}${legacySwaggerParser}    </dependencies>
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-maven-plugin</artifactId>
-                <extensions>true</extensions>
-            </plugin>
-${backendDownloadPlugin}
+            ${backendDownloadPlugin}
             <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
@@ -145,7 +141,7 @@ ${backendDownloadPlugin}
                         <useMicroProfileOpenAPIAnnotations>true</useMicroProfileOpenAPIAnnotations>
                         <useJakartaEe>true</useJakartaEe>
                         <useSwaggerAnnotations>false</useSwaggerAnnotations>
-${openApiJavaOption}
+                        ${openApiJavaOption}
                     </configOptions>
                 </configuration>
             </plugin>
