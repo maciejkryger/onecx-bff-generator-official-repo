@@ -45,8 +45,9 @@ public class GeneratorService {
         Files.createDirectories(projectDir);
         Path frontendFile = apiSourceResolver.copyTo(request.frontendApi(),
                 projectDir.resolve("src/main/openapi/" + resolveSourceFileName(request.frontendApi(), "frontend")));
-        // Backend: if URL — download to temp for analysis only (will be downloaded at build time by download-maven-plugin)
-        //          if local file — copy to project target/tmp/openapi/ (matches codegen input-base-dir)
+        // Backend: if URL — download to temp for analysis only (will be downloaded at build time by download-maven-plugin
+        //                   into target/tmp/openapi; input-base-dir=target/tmp/openapi)
+        //          if local file — copy to project openapi/clients/ (persisted in project; input-base-dir=openapi/clients)
         String backendApiSource = request.backendApi();
         boolean backendIsUrl = backendApiSource != null &&
                 (backendApiSource.startsWith("http://") || backendApiSource.startsWith("https://"));
@@ -59,9 +60,9 @@ public class GeneratorService {
             backendFile = apiSourceResolver.copyTo(backendApiSource, backendTempDir.resolve(backendFileName));
             backendApiUri = backendApiSource;
         } else {
-            // Local file — copy into project target/tmp/openapi/ (matches codegen input-base-dir), no download plugin
+            // Local file — copy into project openapi/clients/ (persisted in project, codegen reads from there)
             backendFile = apiSourceResolver.copyTo(backendApiSource,
-                    projectDir.resolve("target/tmp/openapi/" + backendFileName));
+                    projectDir.resolve("openapi/clients/" + backendFileName));
             backendApiUri = null;
         }
         OpenAPI frontendApi = openApiAnalyzer.read(frontendFile);
@@ -75,7 +76,7 @@ public class GeneratorService {
                 basePackage, frontendFile.getFileName().toString(), backendApiUri, backendFile.getFileName().toString());
         projectWriter.writeApplicationFiles(projectDir, request.projectName(), request.groupId(), basePackage,
                 artifactId,
-                backendFile.getFileName().toString());
+                backendFile.getFileName().toString(), backendIsUrl);
         projectWriter.writeGeneratedReadme(projectDir, request.projectName(), request.groupId(), basePackage, parentVersion,
                 profile, controllerSelection.controllers());
         projectWriter.writeControllerClasses(projectDir,

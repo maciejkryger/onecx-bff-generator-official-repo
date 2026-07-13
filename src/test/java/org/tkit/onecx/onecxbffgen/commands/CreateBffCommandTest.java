@@ -24,7 +24,7 @@ class CreateBffCommandTest {
         assertTrue(Files.exists(generated.resolve("pom.xml")));
         assertTrue(Files.exists(generated.resolve("README.md")));
         assertTrue(Files.exists(generated.resolve("src/main/openapi/frontend.yaml")));
-        assertTrue(Files.exists(generated.resolve("target/tmp/openapi/backend.yaml")), "Local backend spec should be copied into target/tmp/openapi");
+        assertTrue(Files.exists(generated.resolve("openapi/clients/backend.yaml")), "Local backend spec should be copied into openapi/clients/");
         assertFalse(Files.exists(generated.resolve("src/main/openapi/openapi-frontend.yaml")));
         assertFalse(Files.exists(generated.resolve("target/tmp/openapi/openapi-backend.yaml")));
         assertTrue(Files.exists(generated.resolve("src/main/java/org/tkit/onecx/demo/bff/rs/controllers/UsersRestController.java")));
@@ -179,7 +179,7 @@ class CreateBffCommandTest {
         assertTrue(appProps.contains("onecx.generator.group=org.tkit.onecx"));
         assertTrue(appProps.contains("onecx.generator.package=org.tkit.onecx.demo.bff"));
         assertTrue(appProps.contains("onecx.permissions.application-id=${quarkus.application.name}"));
-        assertTrue(appProps.contains("quarkus.openapi-generator.codegen.input-base-dir=target/tmp/openapi"));
+        assertTrue(appProps.contains("quarkus.openapi-generator.codegen.input-base-dir=openapi/clients"));
         assertTrue(appProps.contains(
                 "%prod.quarkus.rest-client.backend_api.url=http://onecx-demo-svc:8080"
         ));
