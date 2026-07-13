@@ -117,7 +117,8 @@ public class ProjectWriter {
                                       String groupId,
                                       String basePackage,
                                       String artifactId,
-                                      String backendFileName) throws IOException {
+                                      String backendFileName,
+                                      boolean backendApiIsUrl) throws IOException {
         Map<String, String> appValues = new LinkedHashMap<>();
         appValues.put("projectName", projectName);
         appValues.put("groupId", groupId);
@@ -126,6 +127,9 @@ public class ProjectWriter {
         appValues.put("backendClientBasePackage", "gen." + basePackage + ".client");
         appValues.put("backendConfigKey", BACKEND_CONFIG_KEY);
         appValues.put("backendServiceName", deriveBackendServiceName(projectName));
+        // URL: download-maven-plugin downloads to target/tmp/openapi at build time
+        // local file: already copied to openapi/clients/ (persisted in project)
+        appValues.put("openApiInputBaseDir", backendApiIsUrl ? "target/tmp/openapi" : "openapi/clients");
         writeTemplate(projectDir.resolve("src/main/resources/application.properties"),
                 "bff-project/application.properties.tpl", appValues);
         writeTemplate(projectDir.resolve(".gitignore"), "bff-project/gitignore.tpl", Map.of());

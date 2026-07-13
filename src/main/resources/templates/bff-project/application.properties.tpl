@@ -29,7 +29,7 @@ onecx.generator.package=${basePackage}
 %dev.tkit.security.auth.enabled=false
 
 # BUILD
-quarkus.openapi-generator.codegen.input-base-dir=target/tmp/openapi
+quarkus.openapi-generator.codegen.input-base-dir=${openApiInputBaseDir}
 quarkus.openapi-generator.codegen.spec.${backendSpecKey}.config-key=${backendConfigKey}
 quarkus.openapi-generator.codegen.spec.${backendSpecKey}.base-package=${backendClientBasePackage}
 quarkus.openapi-generator.codegen.spec.${backendSpecKey}.return-response=true
