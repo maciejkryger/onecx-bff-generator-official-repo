@@ -16,8 +16,7 @@ class CreateBffCommandTest {
                 "--project-name", "demo-bff",
                 "--frontend-api", frontend.toString(),
                 "--backend-api", backend.toString(),
-                "--output-dir", tempDir.toString(),
-                "--parent-version", "3.1.0"
+                "--output-dir", tempDir.toString()
         );
         Path generated = tempDir.resolve("demo-bff");
         assertEquals(0, result);
@@ -55,6 +54,8 @@ class CreateBffCommandTest {
         assertTrue(pom.contains("<artifactId>quarkus-openapi-generator</artifactId>"));
         assertTrue(pom.contains("<artifactId>tkit-quarkus-rest-context</artifactId>"));
         assertTrue(pom.contains("<artifactId>onecx-permissions</artifactId>"));
+        assertTrue(pom.contains("<artifactId>quarkus-junit5</artifactId>"), "pom.xml should contain quarkus-junit5 test dependency");
+        assertTrue(pom.contains("<artifactId>quarkus-junit-mockito</artifactId>"), "pom.xml should contain quarkus-junit-mockito test dependency");
         assertFalse(pom.contains("<artifactId>maven-surefire-plugin</artifactId>"));
         assertFalse(pom.contains("SecurityDynamicImplTest"));
         assertFalse(pom.contains("<artifactId>swagger-parser</artifactId>"));
@@ -78,47 +79,6 @@ class CreateBffCommandTest {
         assertTrue(usersTest.contains("@InjectMockServerClient"), "Test class should inject MockServerClient");
     }
     @Test
-    void shouldGenerateProjectWithLegacyProfile() throws Exception {
-        Path tempDir = Files.createTempDirectory("bff-generator-legacy-");
-        Path frontend = Path.of("src/test/resources/openapi/frontend.yaml").toAbsolutePath();
-        Path backend = Path.of("src/test/resources/openapi/backend.yaml").toAbsolutePath();
-        int result = new CommandLine(new CreateBffCommand(new org.tkit.onecx.onecxbffgen.service.GeneratorService())).execute(
-                "--project-name", "demo-bff-legacy",
-                "--frontend-api", frontend.toString(),
-                "--backend-api", backend.toString(),
-                "--output-dir", tempDir.toString(),
-                "--parent-version", "2.5.0"
-        );
-        Path generated = tempDir.resolve("demo-bff-legacy");
-        assertEquals(0, result);
-        String pom = Files.readString(generated.resolve("pom.xml"));
-        assertFalse(pom.contains("<packaging>quarkus</packaging>"));
-        assertTrue(pom.contains("<artifactId>quarkus-junit5</artifactId>"));
-        assertTrue(pom.contains("<artifactId>swagger-parser</artifactId>"));
-        assertTrue(pom.contains("<artifactId>quarkus-test-keycloak-server</artifactId>"));
-    }
-    @Test
-    void shouldGenerateProjectWithTransitionProfile() throws Exception {
-        Path tempDir = Files.createTempDirectory("bff-generator-transition-");
-        Path frontend = Path.of("src/test/resources/openapi/frontend.yaml").toAbsolutePath();
-        Path backend = Path.of("src/test/resources/openapi/backend.yaml").toAbsolutePath();
-        int result = new CommandLine(new CreateBffCommand(new org.tkit.onecx.onecxbffgen.service.GeneratorService())).execute(
-                "--project-name", "demo-bff-transition",
-                "--frontend-api", frontend.toString(),
-                "--backend-api", backend.toString(),
-                "--output-dir", tempDir.toString(),
-                "--parent-version", "2.6.0"
-        );
-        Path generated = tempDir.resolve("demo-bff-transition");
-        assertEquals(0, result);
-        String pom = Files.readString(generated.resolve("pom.xml"));
-        assertFalse(pom.contains("<packaging>quarkus</packaging>"));
-        assertTrue(pom.contains("<artifactId>quarkus-junit</artifactId>"));
-        assertTrue(pom.contains("<artifactId>quarkus-junit-mockito</artifactId>"));
-        assertFalse(pom.contains("<artifactId>swagger-parser</artifactId>"));
-        assertTrue(pom.contains("quarkus-test-keycloak-server"));
-    }
-    @Test
     void shouldAvoidDuplicatedOnecxPackageSegmentForOnecxPrefixedArtifact() throws Exception {
         Path tempDir = Files.createTempDirectory("bff-generator-package-");
         Path frontend = Path.of("src/test/resources/openapi/frontend.yaml").toAbsolutePath();
@@ -128,8 +88,7 @@ class CreateBffCommandTest {
                 "--group-id", "org.tkit.onecx",
                 "--frontend-api", frontend.toString(),
                 "--backend-api", backend.toString(),
-                "--output-dir", tempDir.toString(),
-                "--parent-version", "3.1.0"
+                "--output-dir", tempDir.toString()
         );
         Path generated = tempDir.resolve("onecx-demo-bff");
         assertEquals(0, result);
@@ -147,8 +106,7 @@ class CreateBffCommandTest {
                 "--project-name", "onecx-demo-bff",
                 "--frontend-api", frontend.toString(),
                 "--backend-api", backend.toString(),
-                "--output-dir", projectDir.toString(),
-                "--parent-version", "3.1.0"
+                "--output-dir", projectDir.toString()
         );
         assertEquals(0, result);
         assertTrue(Files.exists(projectDir.resolve("pom.xml")));
@@ -165,8 +123,7 @@ class CreateBffCommandTest {
                 "--package", "org.tkit.onecx.demo",
                 "--frontend-api", frontend.toString(),
                 "--backend-api", backend.toString(),
-                "--output-dir", tempDir.toString(),
-                "--parent-version", "3.1.0"
+                "--output-dir", tempDir.toString()
         );
         Path generated = tempDir.resolve("onecx-demo-bff");
         assertEquals(0, result);
@@ -201,8 +158,7 @@ class CreateBffCommandTest {
                 "--package", "org.tkit.onecx.demo",
                 "--frontend-api", frontend.toString(),
                 "--backend-api", backend.toString(),
-                "--output-dir", tempDir.toString(),
-                "--parent-version", "3.1.0"
+                "--output-dir", tempDir.toString()
         );
 
         Path generated = tempDir.resolve("onecx-demo-bff");
@@ -228,8 +184,7 @@ class CreateBffCommandTest {
                 "--project-name", "demo-bff-fallback",
                 "--frontend-api", frontend.toString(),
                 "--backend-api", backend.toString(),
-                "--output-dir", tempDir.toString(),
-                "--parent-version", "3.1.0"
+                "--output-dir", tempDir.toString()
         );
         
         Path generated = tempDir.resolve("demo-bff-fallback");

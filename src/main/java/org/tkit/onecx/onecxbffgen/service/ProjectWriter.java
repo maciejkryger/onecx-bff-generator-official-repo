@@ -36,7 +36,6 @@ public class ProjectWriter {
                          String groupId,
                          String artifactId,
                          String parentVersion,
-                         DependencyProfile profile,
                          String basePackage,
                          String frontendFileName,
                          String backendApiUrl,
@@ -46,20 +45,6 @@ public class ProjectWriter {
         values.put("parentVersion", parentVersion);
         values.put("groupId", groupId);
         values.put("artifactId", artifactId);
-        values.put("packaging", profile == DependencyProfile.MODERN_3_1_PLUS ? "    <packaging>quarkus</packaging>" : "");
-        values.put("javaVersion", javaVersion(profile));
-        values.put("legacyJunitDependencies", profile == DependencyProfile.LEGACY_UP_TO_2_5
-                ? "        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit5</artifactId>\n            <scope>test</scope>\n        </dependency>\n        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit5-mockito</artifactId>\n            <scope>test</scope>\n        </dependency>\n"
-                : profile == DependencyProfile.TRANSITION_2_6_TO_3_0
-                ? "        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit</artifactId>\n            <scope>test</scope>\n        </dependency>\n        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit-mockito</artifactId>\n            <scope>test</scope>\n        </dependency>\n"
-                : "");
-        values.put("mockserverSwaggerParserExclusion", profile == DependencyProfile.LEGACY_UP_TO_2_5
-                ? "            <exclusions>\n                <exclusion>\n                    <groupId>io.swagger.parser.v3</groupId>\n                    <artifactId>swagger-parser</artifactId>\n                </exclusion>\n            </exclusions>\n"
-                : "");
-        values.put("legacySwaggerParser", profile == DependencyProfile.LEGACY_UP_TO_2_5
-                ? "        <dependency>\n            <groupId>io.swagger.parser.v3</groupId>\n            <artifactId>swagger-parser</artifactId>\n            <scope>test</scope>\n        </dependency>\n"
-                : "");
-        values.put("openApiJavaOption", profile == DependencyProfile.MODERN_3_1_PLUS ? "" : "                        <java17>true</java17>");
         values.put("frontendApiFileName", frontendFileName);
         values.put("internalApiPackage", "gen." + basePackage + ".rs.internal");
         values.put("internalModelPackage", "gen." + basePackage + ".rs.internal.model");
@@ -647,7 +632,7 @@ public class ProjectWriter {
     }
 
     private String javaVersion(DependencyProfile profile) {
-        return profile == DependencyProfile.MODERN_3_1_PLUS ? "25" : "17";
+        return "25";
     }
 
     /**

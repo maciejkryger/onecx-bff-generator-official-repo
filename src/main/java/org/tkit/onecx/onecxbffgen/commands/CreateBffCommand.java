@@ -39,8 +39,6 @@ public class CreateBffCommand implements Runnable {
             description = "Run mvn -B -ntp -DskipTests clean package in generated project")
     boolean autoBuild;
 
-    @CommandLine.Option(names = "--parent-version", description = "onecx-quarkus3-parent version; if missing, latest release is used")
-    String parentVersion;
 
     private final GeneratorService generatorService;
 
@@ -58,8 +56,7 @@ public class CreateBffCommand implements Runnable {
                 frontendApi,
                 backendApi,
                 outputDir,
-                autoBuild,
-                parentVersion
+                autoBuild
         );
 
         try {

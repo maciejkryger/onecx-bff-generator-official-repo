@@ -26,10 +26,7 @@ public class ParentVersionResolver {
         this.objectMapper = objectMapper;
     }
 
-    public String resolve(String inputVersion) {
-        if (inputVersion != null && !inputVersion.isBlank()) {
-            return normalize(inputVersion);
-        }
+    public String resolve() {
         try {
             HttpRequest request = HttpRequest.newBuilder(URI.create(LATEST_RELEASE_URL))
                     .header("Accept", "application/vnd.github+json")
@@ -56,6 +53,3 @@ public class ParentVersionResolver {
         return raw.trim().replaceFirst("^[vV]", "");
     }
 }
-
-
-

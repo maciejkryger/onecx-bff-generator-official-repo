@@ -38,8 +38,8 @@ public class GeneratorService {
 
     public Path generate(GenerateRequest request) throws IOException, InterruptedException {
         String artifactId = sanitizeArtifactId(request);
-        String parentVersion = parentVersionResolver.resolve(request.parentVersion());
-        DependencyProfile profile = DependencyProfile.fromParentVersion(parentVersion);
+        String parentVersion = parentVersionResolver.resolve();
+        DependencyProfile profile = DependencyProfile.MODERN_3_1_PLUS;
         String basePackage = resolveBasePackage(request, artifactId);
         Path projectDir = resolveProjectDir(request.outputDir(), artifactId);
         Files.createDirectories(projectDir);
@@ -72,7 +72,7 @@ public class GeneratorService {
         Map<String, List<OperationModel>> frontendControllers = openApiAnalyzer.extractControllers(frontendApi);
         Map<String, List<OperationModel>> backendControllers = openApiAnalyzer.extractControllers(backendApi);
         ControllerSelection controllerSelection = selectControllers(frontendControllers, backendControllers, frontendSchemas);
-        projectWriter.writePom(projectDir, request.projectName(), request.groupId(), artifactId, parentVersion, profile,
+        projectWriter.writePom(projectDir, request.projectName(), request.groupId(), artifactId, parentVersion,
                 basePackage, frontendFile.getFileName().toString(), backendApiUri, backendFile.getFileName().toString());
         projectWriter.writeApplicationFiles(projectDir, request.projectName(), request.groupId(), basePackage,
                 artifactId,
@@ -92,10 +92,8 @@ public class GeneratorService {
         projectWriter.writeWorkflowFiles(projectDir, request.projectName(), profile);
         writeGenerationReport(projectDir, request.projectName(), request.groupId(), basePackage, parentVersion, profile,
                 frontendSchemas, backendSchemas, controllerSelection.controllers());
-        boolean latestResolved = request.parentVersion() == null || request.parentVersion().isBlank();
         System.out.println("Generated BFF '" + request.projectName() + "' in: " + projectDir.toAbsolutePath());
-        System.out.println("Resolved onecx-quarkus3-parent version: " + parentVersion
-                + (latestResolved ? " (latest release)" : " (from --parent-version)"));
+        System.out.println("Resolved onecx-quarkus3-parent version: " + parentVersion + " (latest release)");
         if (request.autoBuild()) {
             runAutoBuild(projectDir);
         }
