@@ -24,7 +24,7 @@ mvn -DskipTests clean package -Dquarkus.package.type=uber-jar
 ```
 The output JAR is created at:
 ```
-target/onecx-bff-generator-1.0.0-SNAPSHOT.jar
+target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar
 ```
 ---
 ## Running Generator Tests
@@ -38,8 +38,8 @@ mvn test
 The generator automatically fetches the latest release versions of `onecx-quarkus3-parent`, `docker-quarkus-jvm`, `docker-quarkus-native`, and `helm-quarkus-app` from GitHub at generation time.
 ### Show help
 ```bash
-java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar --help
-java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar create-bff --help
+java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar --help
+java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar create-bff --help
 ```
 ### `create-bff` options
 | Option | Description | Default |
@@ -56,7 +56,7 @@ java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar create-bff --help
 ## Generating a Project (from any location to any location)
 Use the absolute path to the JAR and provide absolute paths for the API specs and output directory:
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name <project-name> \
   --group org.tkit.onecx \
@@ -68,7 +68,7 @@ java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-gener
 ```
 ### Example — regenerate `onecx-demo-bff` from local backend path
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name onecx-demo-bff \
   --group org.tkit.onecx \
@@ -82,7 +82,7 @@ java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-gener
 
 ### Example — regenerate `onecx-demo-bff`
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator-official-repo/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name onecx-demo-bff \
   --group org.tkit.onecx \
@@ -94,7 +94,7 @@ java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-gener
 ```
 raw for develop branch: 
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name onecx-demo-bff \
   --group org.tkit.onecx \
