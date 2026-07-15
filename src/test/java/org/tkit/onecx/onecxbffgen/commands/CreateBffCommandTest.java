@@ -36,6 +36,15 @@ class CreateBffCommandTest {
         assertTrue(Files.exists(generated.resolve("src/main/helm/values.yaml")));
         assertTrue(Files.exists(generated.resolve("src/main/docker/Dockerfile.jvm")));
         assertTrue(Files.exists(generated.resolve("src/main/docker/Dockerfile.native")));
+        String dockerJvm = Files.readString(generated.resolve("src/main/docker/Dockerfile.jvm"));
+        assertTrue(dockerJvm.startsWith("FROM ghcr.io/onecx/docker-quarkus-jvm:"), "Dockerfile.jvm should use docker-quarkus-jvm image");
+        assertFalse(dockerJvm.contains("${dockerJvmVersion}"), "Dockerfile.jvm placeholder must be resolved");
+        String dockerNative = Files.readString(generated.resolve("src/main/docker/Dockerfile.native"));
+        assertTrue(dockerNative.startsWith("FROM ghcr.io/onecx/docker-quarkus-native:"), "Dockerfile.native should use docker-quarkus-native image");
+        assertFalse(dockerNative.contains("${dockerNativeVersion}"), "Dockerfile.native placeholder must be resolved");
+        String chart = Files.readString(generated.resolve("src/main/helm/Chart.yaml"));
+        assertTrue(chart.contains("name: helm-quarkus-app"), "Chart.yaml should reference helm-quarkus-app");
+        assertFalse(chart.contains("${helmVersion}"), "Chart.yaml placeholder must be resolved");
         assertTrue(Files.exists(generated.resolve(".github/workflows/build-branch.yml")));
         assertTrue(Files.exists(generated.resolve(".github/workflows/build.yml")));
         assertTrue(Files.exists(generated.resolve(".github/workflows/build-pr.yml")));

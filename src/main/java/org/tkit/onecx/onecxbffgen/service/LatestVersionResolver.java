@@ -9,26 +9,33 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class ParentVersionResolver {
+public class LatestVersionResolver {
 
-    private static final String FALLBACK_VERSION = "3.1.0";
-    private static final String LATEST_RELEASE_URL = "https://api.github.com/repos/onecx/onecx-quarkus3-parent/releases/latest";
+    private static final String API_BASE = "https://api.github.com/repos/%s/releases/latest";
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
 
-    public ParentVersionResolver() {
+    public LatestVersionResolver() {
         this(HttpClient.newHttpClient(), new ObjectMapper());
     }
 
-    ParentVersionResolver(HttpClient httpClient, ObjectMapper objectMapper) {
+    LatestVersionResolver(HttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
 
-    public String resolve() {
+    /**
+     * Resolves the latest release tag for a GitHub repository.
+     *
+     * @param ownerAndRepo  e.g. "onecx/onecx-quarkus3-parent"
+     * @param fallback      version returned when GitHub is unreachable or returns no tag
+     * @return resolved version string (leading 'v' stripped)
+     */
+    public String resolveLatest(String ownerAndRepo, String fallback) {
         try {
-            HttpRequest request = HttpRequest.newBuilder(URI.create(LATEST_RELEASE_URL))
+            String url = API_BASE.formatted(ownerAndRepo);
+            HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                     .header("Accept", "application/vnd.github+json")
                     .header("X-GitHub-Api-Version", "2022-11-28")
                     .GET()
@@ -37,7 +44,7 @@ public class ParentVersionResolver {
             if (response.statusCode() >= 200 && response.statusCode() < 300) {
                 JsonNode node = objectMapper.readTree(response.body());
                 String tag = node.path("tag_name").asText();
-                if (!tag.isBlank()) {
+                if (tag != null && !tag.isBlank()) {
                     return normalize(tag);
                 }
             }
@@ -46,10 +53,13 @@ public class ParentVersionResolver {
                 Thread.currentThread().interrupt();
             }
         }
-        return FALLBACK_VERSION;
+        return fallback;
     }
 
     private String normalize(String raw) {
         return raw.trim().replaceFirst("^[vV]", "");
     }
 }
+
+
+

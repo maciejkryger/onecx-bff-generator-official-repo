@@ -1,6 +1,5 @@
 package org.tkit.onecx.onecxbffgen.service;
 
-import org.tkit.onecx.onecxbffgen.model.DependencyProfile;
 import org.tkit.onecx.onecxbffgen.model.OperationModel;
 import org.tkit.onecx.onecxbffgen.model.SchemaModel;
 import java.io.IOException;
@@ -84,15 +83,13 @@ public class ProjectWriter {
                                      String groupId,
                                      String basePackage,
                                      String parentVersion,
-                                     DependencyProfile profile,
                                      Map<String, List<OperationModel>> controllers) throws IOException {
         Map<String, String> values = new LinkedHashMap<>();
         values.put("projectName", projectName);
         values.put("groupId", groupId);
         values.put("basePackage", basePackage);
         values.put("parentVersion", parentVersion);
-        values.put("dependencyProfile", profile.name());
-        values.put("javaVersion", javaVersion(profile));
+        values.put("javaVersion", "25");
         values.put("curlExamples", buildCurlExamples(controllers));
         writeTemplate(projectDir.resolve("README.md"), "bff-project/README.md.tpl", values);
     }
@@ -103,7 +100,10 @@ public class ProjectWriter {
                                       String basePackage,
                                       String artifactId,
                                       String backendFileName,
-                                      boolean backendApiIsUrl) throws IOException {
+                                      boolean backendApiIsUrl,
+                                      String dockerJvmVersion,
+                                      String dockerNativeVersion,
+                                      String helmVersion) throws IOException {
         Map<String, String> appValues = new LinkedHashMap<>();
         appValues.put("projectName", projectName);
         appValues.put("groupId", groupId);
@@ -119,23 +119,24 @@ public class ProjectWriter {
                 "bff-project/application.properties.tpl", appValues);
         writeTemplate(projectDir.resolve(".gitignore"), "bff-project/gitignore.tpl", Map.of());
         writeTemplate(projectDir.resolve("src/main/helm/Chart.yaml"), "bff-project/Chart.yaml.tpl",
-                Map.of("artifactId", artifactId, "projectName", projectName));
+                Map.of("artifactId", artifactId, "projectName", projectName, "helmVersion", helmVersion));
         writeTemplate(projectDir.resolve("src/main/helm/values.yaml"), "bff-project/values.yaml.tpl",
                 Map.of("artifactId", artifactId,
                         "projectName", projectName,
                         "projectDisplayName", toDisplayName(projectName),
                         "permissionKey", defaultPermissionKey(artifactId),
                         "defaultScopes", "ocx-" + defaultPermissionKey(artifactId) + ":all, ocx-pm:read"));
-        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.jvm"), "bff-project/Dockerfile.jvm.tpl", Map.of());
-        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.native"), "bff-project/Dockerfile.native.tpl", Map.of());
+        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.jvm"), "bff-project/Dockerfile.jvm.tpl",
+                Map.of("dockerJvmVersion", dockerJvmVersion));
+        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.native"), "bff-project/Dockerfile.native.tpl",
+                Map.of("dockerNativeVersion", dockerNativeVersion));
     }
 
-    public void writeWorkflowFiles(Path projectDir, String projectName, DependencyProfile profile) throws IOException {
+    public void writeWorkflowFiles(Path projectDir, String projectName) throws IOException {
         GitHubActionsService githubActions = new GitHubActionsService(templateService);
         try {
             githubActions.generate(projectDir, Map.of(
-                    "projectName", projectName,
-                    "profile", profile.name().toLowerCase()
+                    "projectName", projectName
             ));
         } catch (Exception e) {
             // workflow templates are optional for tests / local generation
@@ -631,9 +632,6 @@ public class ProjectWriter {
         return sb.toString();
     }
 
-    private String javaVersion(DependencyProfile profile) {
-        return "25";
-    }
 
     /**
      * Converts a kebab-case artifact name to a human-readable display name.
