@@ -56,7 +56,10 @@ class CreateBffCommandTest {
         assertTrue(Files.exists(generated.resolve(".github/workflows/documentation.yml")));
         assertTrue(Files.exists(generated.resolve(".github/workflows/security.yml")));
         assertTrue(Files.exists(generated.resolve(".github/workflows/sonar-pr.yml")));
-        assertTrue(Files.exists(generated.resolve(".github/dependabot.yml")));
+        assertTrue(Files.exists(generated.resolve(".github/renovate.json")));
+        String renovate = Files.readString(generated.resolve(".github/renovate.json"));
+        assertTrue(renovate.contains("renovate-schema.json"), ".github/renovate.json should contain schema reference");
+        assertTrue(renovate.contains("onecx/onecx-renovate"), ".github/renovate.json should extend onecx renovate config");
         String pom = Files.readString(generated.resolve("pom.xml"));
         assertTrue(pom.contains("<packaging>quarkus</packaging>"));
         assertFalse(pom.contains("<maven.compiler.release>"));
