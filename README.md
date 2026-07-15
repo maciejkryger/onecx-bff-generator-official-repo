@@ -34,6 +34,8 @@ mvn test
 ```
 ---
 ## Using the Generator
+
+The generator automatically fetches the latest release versions of `onecx-quarkus3-parent`, `docker-quarkus-jvm`, `docker-quarkus-native`, and `helm-quarkus-app` from GitHub at generation time.
 ### Show help
 ```bash
 java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar --help
@@ -50,7 +52,6 @@ java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar create-bff --help
 | `--backend-api` | Path or URL to the backend OpenAPI spec | required |
 | `--output-dir` | Output directory | current directory |
 | `--autobuild` | Run `mvn -B -ntp -DskipTests clean package` after generation | false |
-| `--parent-version` | Version of `onecx-quarkus3-parent` (latest release fetched if not set) | auto |
 ---
 ## Generating a Project (from any location to any location)
 Use the absolute path to the JAR and provide absolute paths for the API specs and output directory:
@@ -135,15 +136,6 @@ Mappers translate between:
 When the frontend OpenAPI defines schemas but no path operations, the generator falls back to using
 the backend operations directly. Controllers are generated without a frontend interface, calling the
 backend REST client and forwarding the response.
----
-## Parent Version Logic
-If `--parent-version` is not provided, the generator fetches the latest release from:
-`https://github.com/onecx/onecx-quarkus3-parent/releases`
-| Version range | Java | JUnit dependency |
-|---------------|------|-----------------|
-| `>= 3.1.0` | 25 | `quarkus-junit`, `quarkus-junit-mockito` |
-| `2.5.1 – 3.0.x` | 17 | `quarkus-junit`, `quarkus-junit-mockito` |
-| `<= 2.5.0` | 17 | `quarkus-junit5`, `quarkus-junit5-mockito` |
 ---
 ## Template Naming Convention
 Templates generating Java classes use PascalCase names matching the output class:
