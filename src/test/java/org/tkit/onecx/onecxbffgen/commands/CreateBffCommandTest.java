@@ -66,7 +66,7 @@ class CreateBffCommandTest {
         assertTrue(pom.contains("<artifactId>quarkus-openapi-generator</artifactId>"));
         assertTrue(pom.contains("<artifactId>tkit-quarkus-rest-context</artifactId>"));
         assertTrue(pom.contains("<artifactId>onecx-permissions</artifactId>"));
-        assertTrue(pom.contains("<artifactId>quarkus-junit</artifactId>"), "pom.xml should contain quarkus-junit5 test dependency");
+        assertTrue(pom.contains("<artifactId>quarkus-junit</artifactId>"), "pom.xml should contain quarkus-junit test dependency");
         assertTrue(pom.contains("<artifactId>quarkus-junit-mockito</artifactId>"), "pom.xml should contain quarkus-junit-mockito test dependency");
         assertFalse(pom.contains("<artifactId>maven-surefire-plugin</artifactId>"));
         assertFalse(pom.contains("SecurityDynamicImplTest"));
