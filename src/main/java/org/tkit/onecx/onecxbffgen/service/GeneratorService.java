@@ -181,9 +181,6 @@ public class GeneratorService {
         return normalized.resolve(artifactId);
     }
 
-    private Path resolveOpenApiTargetPath(String source, Path projectDir, String side) {
-        return projectDir.resolve("src/main/openapi/" + side + "/" + resolveSourceFileName(source, side));
-    }
 
     private String resolveSourceFileName(String source, String side) {
         try {
