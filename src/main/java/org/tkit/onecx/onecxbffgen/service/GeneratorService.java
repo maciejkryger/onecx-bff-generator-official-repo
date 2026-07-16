@@ -37,10 +37,15 @@ public class GeneratorService {
 
     public Path generate(GenerateRequest request) throws IOException, InterruptedException {
         String artifactId = sanitizeArtifactId(request);
-        String parentVersion    = versionResolver.resolveLatest("onecx/onecx-quarkus3-parent", "3.1.0");
-        String dockerJvmVersion = versionResolver.resolveLatest("onecx/docker-quarkus-jvm",    "1.4.0");
-        String dockerNativeVersion = versionResolver.resolveLatest("onecx/docker-quarkus-native", "1.4.0");
-        String helmVersion      = versionResolver.resolveLatest("onecx/helm-quarkus-app",      "0.42.0");
+        LatestVersionResolver.ResolvedVersion parentResolved = versionResolver.resolveLatestWithSource("onecx/onecx-quarkus3-parent", "3.1.0");
+        LatestVersionResolver.ResolvedVersion dockerJvmResolved = versionResolver.resolveLatestWithSource("onecx/docker-quarkus-jvm", "1.4.0");
+        LatestVersionResolver.ResolvedVersion dockerNativeResolved = versionResolver.resolveLatestWithSource("onecx/docker-quarkus-native", "1.4.0");
+        LatestVersionResolver.ResolvedVersion helmResolved = versionResolver.resolveLatestWithSource("onecx/helm-quarkus-app", "0.42.0");
+
+        String parentVersion = parentResolved.version();
+        String dockerJvmVersion = dockerJvmResolved.version();
+        String dockerNativeVersion = dockerNativeResolved.version();
+        String helmVersion = helmResolved.version();
         String basePackage = resolveBasePackage(request, artifactId);
         Path projectDir = resolveProjectDir(request.outputDir(), artifactId);
         Files.createDirectories(projectDir);
@@ -96,11 +101,11 @@ public class GeneratorService {
                 dockerJvmVersion, dockerNativeVersion, helmVersion,
                 frontendSchemas, backendSchemas, controllerSelection.controllers());
         System.out.println("Generated BFF '" + request.projectName() + "' in: " + projectDir.toAbsolutePath());
-        System.out.println("Resolved versions (latest release):");
-        System.out.println("  onecx-quarkus3-parent : " + parentVersion);
-        System.out.println("  docker-quarkus-jvm    : " + dockerJvmVersion);
-        System.out.println("  docker-quarkus-native : " + dockerNativeVersion);
-        System.out.println("  helm-quarkus-app      : " + helmVersion);
+        System.out.println("▶ Resolved generator versions:");
+        System.out.println("  onecx-quarkus3-parent : " + formatResolved(parentResolved));
+        System.out.println("  docker-quarkus-jvm    : " + formatResolved(dockerJvmResolved));
+        System.out.println("  docker-quarkus-native : " + formatResolved(dockerNativeResolved));
+        System.out.println("  helm-quarkus-app      : " + formatResolved(helmResolved));
         if (request.autoBuild()) {
             runAutoBuild(projectDir);
         }
@@ -167,6 +172,10 @@ public class GeneratorService {
             return packageName;
         }
         return packageName + ".bff";
+    }
+
+    private String formatResolved(LatestVersionResolver.ResolvedVersion resolved) {
+        return resolved.version() + (resolved.source() == LatestVersionResolver.Source.LATEST ? " (latest)" : " (as default)");
     }
 
     private Path resolveProjectDir(Path outputDir, String artifactId) {
