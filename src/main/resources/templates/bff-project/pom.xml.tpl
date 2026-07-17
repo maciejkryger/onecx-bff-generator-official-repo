@@ -13,7 +13,7 @@
     <artifactId>${artifactId}</artifactId>
     <name>${projectDisplayName}</name>
     <version>999-SNAPSHOT</version>
-${packaging}
+    <packaging>quarkus</packaging>
 
     <dependencies>
         <dependency>
@@ -93,9 +93,19 @@ ${packaging}
         <dependency>
             <groupId>io.quarkiverse.mockserver</groupId>
             <artifactId>quarkus-mockserver-test</artifactId>
-${mockserverSwaggerParserExclusion}            <scope>test</scope>
+            <scope>test</scope>
         </dependency>
-${legacyJunitDependencies}${legacySwaggerParser}    </dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit-mockito</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>
@@ -141,7 +151,6 @@ ${legacyJunitDependencies}${legacySwaggerParser}    </dependencies>
                         <useMicroProfileOpenAPIAnnotations>true</useMicroProfileOpenAPIAnnotations>
                         <useJakartaEe>true</useJakartaEe>
                         <useSwaggerAnnotations>false</useSwaggerAnnotations>
-                        ${openApiJavaOption}
                     </configOptions>
                 </configuration>
             </plugin>

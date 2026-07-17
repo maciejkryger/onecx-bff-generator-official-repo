@@ -15,11 +15,11 @@ public class GitHubActionsService {
             "bff-project/.github/workflows/"
     );
 
-    private static final List<String> DEPENDABOT_TEMPLATE_CANDIDATES = List.of(
-            "templates/github/dependabot.yml.tpl",
-            "github/dependabot.yml.tpl",
-            "templates/bff-project/.github/dependabot.yml.tpl",
-            "bff-project/.github/dependabot.yml.tpl"
+    private static final List<String> RENOVATE_TEMPLATE_CANDIDATES = List.of(
+            "templates/github/renovate.json.tpl",
+            "github/renovate.json.tpl",
+            "templates/bff-project/.github/renovate.json.tpl",
+            "bff-project/.github/renovate.json.tpl"
     );
 
     private final TemplateService templates;
@@ -51,7 +51,7 @@ public class GitHubActionsService {
             renderWorkflowIfPresent("security.yml.tpl", workflows, "security.yml", safeCtx);
             renderWorkflowIfPresent("sonar-pr.yml.tpl", workflows, "sonar-pr.yml", safeCtx);
 
-            renderDependabotIfPresent(github, safeCtx);
+            renderRenovateIfPresent(github, safeCtx);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to generate GitHub Actions", e);
@@ -77,17 +77,17 @@ public class GitHubActionsService {
         );
     }
 
-    private void renderDependabotIfPresent(Path githubDir, Map<String, Object> ctx) {
-        String templatePath = findFirstExisting(DEPENDABOT_TEMPLATE_CANDIDATES);
+    private void renderRenovateIfPresent(Path githubDir, Map<String, Object> ctx) {
+        String templatePath = findFirstExisting(RENOVATE_TEMPLATE_CANDIDATES);
 
         if (templatePath == null) {
-            System.err.println("GitHub dependabot template not found, skipping.");
+            System.err.println("GitHub renovate template not found, skipping.");
             return;
         }
 
         templates.renderToFile(
                 templatePath,
-                githubDir.resolve("dependabot.yml"),
+                githubDir.resolve("renovate.json"),
                 ctx
         );
     }

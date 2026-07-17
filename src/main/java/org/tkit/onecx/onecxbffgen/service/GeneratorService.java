@@ -1,7 +1,6 @@
 package org.tkit.onecx.onecxbffgen.service;
 import io.swagger.v3.oas.models.OpenAPI;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.tkit.onecx.onecxbffgen.model.DependencyProfile;
 import org.tkit.onecx.onecxbffgen.model.GenerateRequest;
 import org.tkit.onecx.onecxbffgen.model.OperationModel;
 import org.tkit.onecx.onecxbffgen.model.SchemaModel;
@@ -17,20 +16,20 @@ import java.util.Map;
 @ApplicationScoped
 public class GeneratorService {
 
-    private final ParentVersionResolver parentVersionResolver;
+    private final LatestVersionResolver versionResolver;
     private final ApiSourceResolver apiSourceResolver;
     private final OpenApiAnalyzer openApiAnalyzer;
     private final ProjectWriter projectWriter;
 
     public GeneratorService() {
-        this(new ParentVersionResolver(), new ApiSourceResolver(), new OpenApiAnalyzer(), new ProjectWriter());
+        this(new LatestVersionResolver(), new ApiSourceResolver(), new OpenApiAnalyzer(), new ProjectWriter());
     }
 
-    GeneratorService(ParentVersionResolver parentVersionResolver,
+    GeneratorService(LatestVersionResolver versionResolver,
                      ApiSourceResolver apiSourceResolver,
                      OpenApiAnalyzer openApiAnalyzer,
                      ProjectWriter projectWriter) {
-        this.parentVersionResolver = parentVersionResolver;
+        this.versionResolver = versionResolver;
         this.apiSourceResolver = apiSourceResolver;
         this.openApiAnalyzer = openApiAnalyzer;
         this.projectWriter = projectWriter;
@@ -38,8 +37,15 @@ public class GeneratorService {
 
     public Path generate(GenerateRequest request) throws IOException, InterruptedException {
         String artifactId = sanitizeArtifactId(request);
-        String parentVersion = parentVersionResolver.resolve(request.parentVersion());
-        DependencyProfile profile = DependencyProfile.fromParentVersion(parentVersion);
+        LatestVersionResolver.ResolvedVersion parentResolved = versionResolver.resolveLatestWithSource("onecx/onecx-quarkus3-parent", "3.1.0", request.githubToken());
+        LatestVersionResolver.ResolvedVersion dockerJvmResolved = versionResolver.resolveLatestWithSource("onecx/docker-quarkus-jvm", "1.4.0", request.githubToken());
+        LatestVersionResolver.ResolvedVersion dockerNativeResolved = versionResolver.resolveLatestWithSource("onecx/docker-quarkus-native", "1.4.0", request.githubToken());
+        LatestVersionResolver.ResolvedVersion helmResolved = versionResolver.resolveLatestWithSource("onecx/helm-quarkus-app", "0.42.0", request.githubToken());
+
+        String parentVersion = parentResolved.version();
+        String dockerJvmVersion = dockerJvmResolved.version();
+        String dockerNativeVersion = dockerNativeResolved.version();
+        String helmVersion = helmResolved.version();
         String basePackage = resolveBasePackage(request, artifactId);
         Path projectDir = resolveProjectDir(request.outputDir(), artifactId);
         Files.createDirectories(projectDir);
@@ -72,13 +78,14 @@ public class GeneratorService {
         Map<String, List<OperationModel>> frontendControllers = openApiAnalyzer.extractControllers(frontendApi);
         Map<String, List<OperationModel>> backendControllers = openApiAnalyzer.extractControllers(backendApi);
         ControllerSelection controllerSelection = selectControllers(frontendControllers, backendControllers, frontendSchemas);
-        projectWriter.writePom(projectDir, request.projectName(), request.groupId(), artifactId, parentVersion, profile,
+        projectWriter.writePom(projectDir, request.projectName(), request.groupId(), artifactId, parentVersion,
                 basePackage, frontendFile.getFileName().toString(), backendApiUri, backendFile.getFileName().toString());
         projectWriter.writeApplicationFiles(projectDir, request.projectName(), request.groupId(), basePackage,
                 artifactId,
-                backendFile.getFileName().toString(), backendIsUrl);
+                backendFile.getFileName().toString(), backendIsUrl,
+                dockerJvmVersion, dockerNativeVersion, helmVersion);
         projectWriter.writeGeneratedReadme(projectDir, request.projectName(), request.groupId(), basePackage, parentVersion,
-                profile, controllerSelection.controllers());
+                controllerSelection.controllers());
         projectWriter.writeControllerClasses(projectDir,
                 basePackage,
                 controllerSelection.controllers(),
@@ -89,13 +96,16 @@ public class GeneratorService {
         java.util.Set<String> permissionKeys = openApiAnalyzer.extractPermissionKeys(frontendApi);
         projectWriter.writeTestScaffold(projectDir, basePackage, artifactId, permissionKeys,
                 controllerSelection.controllers(), controllerSelection.backendClientByController());
-        projectWriter.writeWorkflowFiles(projectDir, request.projectName(), profile);
-        writeGenerationReport(projectDir, request.projectName(), request.groupId(), basePackage, parentVersion, profile,
+        projectWriter.writeWorkflowFiles(projectDir, request.projectName());
+        writeGenerationReport(projectDir, request.projectName(), request.groupId(), basePackage, parentVersion,
+                dockerJvmVersion, dockerNativeVersion, helmVersion,
                 frontendSchemas, backendSchemas, controllerSelection.controllers());
-        boolean latestResolved = request.parentVersion() == null || request.parentVersion().isBlank();
         System.out.println("Generated BFF '" + request.projectName() + "' in: " + projectDir.toAbsolutePath());
-        System.out.println("Resolved onecx-quarkus3-parent version: " + parentVersion
-                + (latestResolved ? " (latest release)" : " (from --parent-version)"));
+        System.out.println("▶ Resolved generator versions:");
+        System.out.println("  onecx-quarkus3-parent : " + formatResolved(parentResolved));
+        System.out.println("  docker-quarkus-jvm    : " + formatResolved(dockerJvmResolved));
+        System.out.println("  docker-quarkus-native : " + formatResolved(dockerNativeResolved));
+        System.out.println("  helm-quarkus-app      : " + formatResolved(helmResolved));
         if (request.autoBuild()) {
             runAutoBuild(projectDir);
         }
@@ -164,6 +174,10 @@ public class GeneratorService {
         return packageName + ".bff";
     }
 
+    private String formatResolved(LatestVersionResolver.ResolvedVersion resolved) {
+        return resolved.version() + (resolved.source() == LatestVersionResolver.Source.LATEST ? " (latest)" : " (as default)");
+    }
+
     private Path resolveProjectDir(Path outputDir, String artifactId) {
         if (outputDir == null) {
             return Path.of(artifactId);
@@ -176,9 +190,6 @@ public class GeneratorService {
         return normalized.resolve(artifactId);
     }
 
-    private Path resolveOpenApiTargetPath(String source, Path projectDir, String side) {
-        return projectDir.resolve("src/main/openapi/" + side + "/" + resolveSourceFileName(source, side));
-    }
 
     private String resolveSourceFileName(String source, String side) {
         try {
@@ -353,7 +364,9 @@ public class GeneratorService {
                                        String groupId,
                                        String basePackage,
                                        String parentVersion,
-                                       DependencyProfile profile,
+                                       String dockerJvmVersion,
+                                       String dockerNativeVersion,
+                                       String helmVersion,
                                        List<SchemaModel> frontendSchemas,
                                        List<SchemaModel> backendSchemas,
                                        Map<String, List<OperationModel>> controllers) throws IOException {
@@ -363,12 +376,15 @@ public class GeneratorService {
                   "groupId": "%s",
                   "basePackage": "%s",
                   "parentVersion": "%s",
-                  "dependencyProfile": "%s",
+                  "dockerJvmVersion": "%s",
+                  "dockerNativeVersion": "%s",
+                  "helmVersion": "%s",
                   "frontendSchemas": %d,
                   "backendSchemas": %d,
                   "controllers": %d
                 }
-                """.formatted(projectName, groupId, basePackage, parentVersion, profile.name(), frontendSchemas.size(),
+                """.formatted(projectName, groupId, basePackage, parentVersion,
+                dockerJvmVersion, dockerNativeVersion, helmVersion, frontendSchemas.size(),
                 backendSchemas.size(), controllers.size());
         Files.writeString(projectDir.resolve("generation-report.json"), report);
     }

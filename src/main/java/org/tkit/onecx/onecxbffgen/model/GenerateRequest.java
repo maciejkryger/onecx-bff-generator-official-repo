@@ -10,8 +10,8 @@ public record GenerateRequest(
         String frontendApi,
         String backendApi,
         Path outputDir,
-        boolean autoBuild,
-        String parentVersion
+        String githubToken,
+        boolean autoBuild
 ) {
 }
 

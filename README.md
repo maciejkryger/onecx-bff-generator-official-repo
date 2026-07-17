@@ -24,7 +24,7 @@ mvn -DskipTests clean package -Dquarkus.package.type=uber-jar
 ```
 The output JAR is created at:
 ```
-target/onecx-bff-generator-1.0.0-SNAPSHOT.jar
+target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar
 ```
 ---
 ## Running Generator Tests
@@ -34,10 +34,14 @@ mvn test
 ```
 ---
 ## Using the Generator
+
+The generator automatically fetches the latest release versions of `onecx-quarkus3-parent`, `docker-quarkus-jvm`, `docker-quarkus-native`, and `helm-quarkus-app` from GitHub at generation time.
+
+Without authentication, GitHub allows around 60 API requests per hour. To increase this to 5000 requests/hour, either set `GITHUB_TOKEN` or pass `--github-token`.
 ### Show help
 ```bash
-java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar --help
-java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar create-bff --help
+java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar --help
+java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar create-bff --help
 ```
 ### `create-bff` options
 | Option | Description | Default |
@@ -49,13 +53,25 @@ java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT.jar create-bff --help
 | `--frontend-api` | Path or URL to the frontend OpenAPI spec | required |
 | `--backend-api` | Path or URL to the backend OpenAPI spec | required |
 | `--output-dir` | Output directory | current directory |
+| `--github-token` | Optional GitHub token used to resolve latest dependency versions | env/none |
 | `--autobuild` | Run `mvn -B -ntp -DskipTests clean package` after generation | false |
-| `--parent-version` | Version of `onecx-quarkus3-parent` (latest release fetched if not set) | auto |
+
+Example with explicit token:
+
+```bash
+java -jar target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar create-bff \
+  --name onecx-demo-bff \
+  --group org.tkit.onecx \
+  --package org.tkit.onecx.demo \
+  --frontend-api /path/to/frontend/openapi-bff.yaml \
+  --backend-api /path/to/backend/openapi-svc-internal.yaml \
+  --github-token ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
 ---
 ## Generating a Project (from any location to any location)
 Use the absolute path to the JAR and provide absolute paths for the API specs and output directory:
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name <project-name> \
   --group org.tkit.onecx \
@@ -67,7 +83,7 @@ java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-gener
 ```
 ### Example — regenerate `onecx-demo-bff` from local backend path
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name onecx-demo-bff \
   --group org.tkit.onecx \
@@ -81,7 +97,7 @@ java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-gener
 
 ### Example — regenerate `onecx-demo-bff`
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator-official-repo/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name onecx-demo-bff \
   --group org.tkit.onecx \
@@ -93,7 +109,7 @@ java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-gener
 ```
 raw for develop branch: 
 ```bash
-java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT.jar \
+java -jar /home/Maciej/projects/onecx/onecx-bff-generator/target/onecx-bff-generator-1.0.0-SNAPSHOT-runner.jar \
   create-bff \
   --name onecx-demo-bff \
   --group org.tkit.onecx \
@@ -135,15 +151,6 @@ Mappers translate between:
 When the frontend OpenAPI defines schemas but no path operations, the generator falls back to using
 the backend operations directly. Controllers are generated without a frontend interface, calling the
 backend REST client and forwarding the response.
----
-## Parent Version Logic
-If `--parent-version` is not provided, the generator fetches the latest release from:
-`https://github.com/onecx/onecx-quarkus3-parent/releases`
-| Version range | Java | JUnit dependency |
-|---------------|------|-----------------|
-| `>= 3.1.0` | 25 | `quarkus-junit`, `quarkus-junit-mockito` |
-| `2.5.1 – 3.0.x` | 17 | `quarkus-junit`, `quarkus-junit-mockito` |
-| `<= 2.5.0` | 17 | `quarkus-junit5`, `quarkus-junit5-mockito` |
 ---
 ## Template Naming Convention
 Templates generating Java classes use PascalCase names matching the output class:

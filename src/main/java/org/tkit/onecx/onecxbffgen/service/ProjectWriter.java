@@ -1,6 +1,5 @@
 package org.tkit.onecx.onecxbffgen.service;
 
-import org.tkit.onecx.onecxbffgen.model.DependencyProfile;
 import org.tkit.onecx.onecxbffgen.model.OperationModel;
 import org.tkit.onecx.onecxbffgen.model.SchemaModel;
 import java.io.IOException;
@@ -36,7 +35,6 @@ public class ProjectWriter {
                          String groupId,
                          String artifactId,
                          String parentVersion,
-                         DependencyProfile profile,
                          String basePackage,
                          String frontendFileName,
                          String backendApiUrl,
@@ -46,20 +44,6 @@ public class ProjectWriter {
         values.put("parentVersion", parentVersion);
         values.put("groupId", groupId);
         values.put("artifactId", artifactId);
-        values.put("packaging", profile == DependencyProfile.MODERN_3_1_PLUS ? "    <packaging>quarkus</packaging>" : "");
-        values.put("javaVersion", javaVersion(profile));
-        values.put("legacyJunitDependencies", profile == DependencyProfile.LEGACY_UP_TO_2_5
-                ? "        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit5</artifactId>\n            <scope>test</scope>\n        </dependency>\n        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit5-mockito</artifactId>\n            <scope>test</scope>\n        </dependency>\n"
-                : profile == DependencyProfile.TRANSITION_2_6_TO_3_0
-                ? "        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit</artifactId>\n            <scope>test</scope>\n        </dependency>\n        <dependency>\n            <groupId>io.quarkus</groupId>\n            <artifactId>quarkus-junit-mockito</artifactId>\n            <scope>test</scope>\n        </dependency>\n"
-                : "");
-        values.put("mockserverSwaggerParserExclusion", profile == DependencyProfile.LEGACY_UP_TO_2_5
-                ? "            <exclusions>\n                <exclusion>\n                    <groupId>io.swagger.parser.v3</groupId>\n                    <artifactId>swagger-parser</artifactId>\n                </exclusion>\n            </exclusions>\n"
-                : "");
-        values.put("legacySwaggerParser", profile == DependencyProfile.LEGACY_UP_TO_2_5
-                ? "        <dependency>\n            <groupId>io.swagger.parser.v3</groupId>\n            <artifactId>swagger-parser</artifactId>\n            <scope>test</scope>\n        </dependency>\n"
-                : "");
-        values.put("openApiJavaOption", profile == DependencyProfile.MODERN_3_1_PLUS ? "" : "                        <java17>true</java17>");
         values.put("frontendApiFileName", frontendFileName);
         values.put("internalApiPackage", "gen." + basePackage + ".rs.internal");
         values.put("internalModelPackage", "gen." + basePackage + ".rs.internal.model");
@@ -99,15 +83,13 @@ public class ProjectWriter {
                                      String groupId,
                                      String basePackage,
                                      String parentVersion,
-                                     DependencyProfile profile,
                                      Map<String, List<OperationModel>> controllers) throws IOException {
         Map<String, String> values = new LinkedHashMap<>();
         values.put("projectName", projectName);
         values.put("groupId", groupId);
         values.put("basePackage", basePackage);
         values.put("parentVersion", parentVersion);
-        values.put("dependencyProfile", profile.name());
-        values.put("javaVersion", javaVersion(profile));
+        values.put("javaVersion", "25");
         values.put("curlExamples", buildCurlExamples(controllers));
         writeTemplate(projectDir.resolve("README.md"), "bff-project/README.md.tpl", values);
     }
@@ -118,7 +100,10 @@ public class ProjectWriter {
                                       String basePackage,
                                       String artifactId,
                                       String backendFileName,
-                                      boolean backendApiIsUrl) throws IOException {
+                                      boolean backendApiIsUrl,
+                                      String dockerJvmVersion,
+                                      String dockerNativeVersion,
+                                      String helmVersion) throws IOException {
         Map<String, String> appValues = new LinkedHashMap<>();
         appValues.put("projectName", projectName);
         appValues.put("groupId", groupId);
@@ -134,23 +119,24 @@ public class ProjectWriter {
                 "bff-project/application.properties.tpl", appValues);
         writeTemplate(projectDir.resolve(".gitignore"), "bff-project/gitignore.tpl", Map.of());
         writeTemplate(projectDir.resolve("src/main/helm/Chart.yaml"), "bff-project/Chart.yaml.tpl",
-                Map.of("artifactId", artifactId, "projectName", projectName));
+                Map.of("artifactId", artifactId, "projectName", projectName, "helmVersion", helmVersion));
         writeTemplate(projectDir.resolve("src/main/helm/values.yaml"), "bff-project/values.yaml.tpl",
                 Map.of("artifactId", artifactId,
                         "projectName", projectName,
                         "projectDisplayName", toDisplayName(projectName),
                         "permissionKey", defaultPermissionKey(artifactId),
                         "defaultScopes", "ocx-" + defaultPermissionKey(artifactId) + ":all, ocx-pm:read"));
-        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.jvm"), "bff-project/Dockerfile.jvm.tpl", Map.of());
-        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.native"), "bff-project/Dockerfile.native.tpl", Map.of());
+        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.jvm"), "bff-project/Dockerfile.jvm.tpl",
+                Map.of("dockerJvmVersion", dockerJvmVersion));
+        writeTemplate(projectDir.resolve("src/main/docker/Dockerfile.native"), "bff-project/Dockerfile.native.tpl",
+                Map.of("dockerNativeVersion", dockerNativeVersion));
     }
 
-    public void writeWorkflowFiles(Path projectDir, String projectName, DependencyProfile profile) throws IOException {
+    public void writeWorkflowFiles(Path projectDir, String projectName) throws IOException {
         GitHubActionsService githubActions = new GitHubActionsService(templateService);
         try {
             githubActions.generate(projectDir, Map.of(
-                    "projectName", projectName,
-                    "profile", profile.name().toLowerCase()
+                    "projectName", projectName
             ));
         } catch (Exception e) {
             // workflow templates are optional for tests / local generation
@@ -646,9 +632,6 @@ public class ProjectWriter {
         return sb.toString();
     }
 
-    private String javaVersion(DependencyProfile profile) {
-        return profile == DependencyProfile.MODERN_3_1_PLUS ? "25" : "17";
-    }
 
     /**
      * Converts a kebab-case artifact name to a human-readable display name.

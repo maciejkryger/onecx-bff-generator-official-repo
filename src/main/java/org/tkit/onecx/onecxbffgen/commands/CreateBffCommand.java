@@ -35,12 +35,13 @@ public class CreateBffCommand implements Runnable {
     @CommandLine.Option(names = "--output-dir", defaultValue = ".", description = "Output directory for generated project")
     Path outputDir;
 
+    @CommandLine.Option(names = "--github-token", description = "GitHub token used to resolve latest dependency versions")
+    String githubToken;
+
     @CommandLine.Option(names = "--autobuild", defaultValue = "false",
             description = "Run mvn -B -ntp -DskipTests clean package in generated project")
     boolean autoBuild;
 
-    @CommandLine.Option(names = "--parent-version", description = "onecx-quarkus3-parent version; if missing, latest release is used")
-    String parentVersion;
 
     private final GeneratorService generatorService;
 
@@ -58,8 +59,8 @@ public class CreateBffCommand implements Runnable {
                 frontendApi,
                 backendApi,
                 outputDir,
-                autoBuild,
-                parentVersion
+                githubToken,
+                autoBuild
         );
 
         try {

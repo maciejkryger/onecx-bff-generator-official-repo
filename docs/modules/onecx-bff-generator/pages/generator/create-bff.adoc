@@ -77,10 +77,12 @@ java -jar onecx-bff-generator.jar create-bff \
 
 |`--output-dir`
 |Specifies the output directory where the generated BFF project should be created. If omitted, the current directory is used.
-
-|`--parent-version`
-|Specifies a concrete `onecx-quarkus3-parent` version. If omitted, the generator resolves the latest available release.
 |===
+
+[NOTE]
+====
+The generator automatically resolves the latest release versions of `onecx-quarkus3-parent`, `docker-quarkus-jvm`, `docker-quarkus-native`, and `helm-quarkus-app` from GitHub at generation time. No manual version configuration is required.
+====
 
 .Excerpt of the generation start output exemplary for *demo* BFF application
 image::generating_bff_without_autobuild.png[]
